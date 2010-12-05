@@ -156,6 +156,7 @@ def wikipedia_definition(term):
     if len(term) == 0:  return "No query supplied."
     url = "http://en.wikipedia.org/wiki/%s" % urllib2.quote(term)
     wp_site = download(url)
+    if not wp_site: return "Could not connect to Wikipedia."
     
     # Look for <!-- bodytext --> and then the first <p> afterwards
     pos = wp_site.find("<!-- bodytext -->")
@@ -172,4 +173,4 @@ def wikipedia_definition(term):
             
             return definition + " --- from: " + url
     
-    return "Could not find the definition of `%s`" % term
+    return "Could not find the definition of `%s` in Wikipedia" % term
