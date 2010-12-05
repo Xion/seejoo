@@ -8,6 +8,7 @@ to register them. Shall be used by external modules to add extensions to seejoo.
 '''
 import logging
 import functools
+import types
 
 
 ###############################################################################
@@ -55,4 +56,56 @@ def get_command(cmd):
 ###############################################################################
 # Plugins
 
-# NYI
+_plugins = []
+
+def register_plugin(plugin):
+    '''
+    Registers a new plugin. Plugins are more complex utilities that can
+    control bot's behavior in response to incoming events.
+    A plugin is a callable that is invoked every time an IRC event occurs;
+    it contains two required arguments (bot object & event type) and keyword arguments
+    specific to particular event.
+    @param plugin: Plugin object
+    '''
+    if not callable(plugin):
+        logging.error('Plugin object "%s" is not callable.', str(plugin)) ; return
+        
+    _plugins.append(plugin)
+
+
+class Plugin(object):
+    '''
+    Base class that can be derived in by plugin objects. It intercepts
+    events and converts them to method calls.
+    '''
+    def join(self, bot, channel, user):             pass
+    def part(self, bot, channel, user):             pass
+    def quit(self, bot, user):                      pass
+    def message(self, bot, channel, user, notice):  pass
+    
+    def __call__(self, bot, event, **kwargs):
+        events = { 'join': self.join, 'part': self.part, 'quit':self.quit, 'message':self.message }
+        events[event](bot, **kwargs)
+        
+    
+def plugin(plugin):
+    '''
+    A decorator function for automatic registration of plugins. If used for functions,
+    it registers them as plugins. If used for classes, it instantiates the class and
+    uses it's object as a plugin.
+    '''
+    t = type(plugin)
+    if t == types.FunctionType:
+        register_plugin(plugin)
+    if t == types.ClassType or t == types.TypeType:
+        register_plugin(plugin())
+
+
+def notify(bot, event, **kwargs):
+    '''
+    Notifies all registered plugins about an IRC event.
+    ''' 
+    try:
+        for p in _plugins:  p(bot, event, **kwargs)
+    except Exception, e:
+        pass

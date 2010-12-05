@@ -66,7 +66,7 @@ def strip_html(data):
 # General commands
 
 @command('t')
-def get_website_title(url, **kwargs):
+def get_website_title(url):
     '''
     Retrieves the title of given website and returns it.
     '''
@@ -111,7 +111,7 @@ def _google_websearch(query):
     return json.loads(response)
     
 @command('g')
-def google_search(query, **kwargs):
+def google_search(query):
     '''
     Performs a search using Google search engine.
     @warning: Uses deprecated Google Web Search API that has limitations to 100 queries per day.
@@ -131,7 +131,7 @@ def google_search(query, **kwargs):
     return res
 
 @command('gc')
-def google_search_count(query, **kwargs):
+def google_search_count(query):
     '''
     Performs a search using Google search engine and returns only the estimated number of results.
     '''

@@ -58,9 +58,13 @@ class Bot(IRCClient):
             else:
                 is_command = True   # If no prefix defined, everything is a command
         
-        # Log message/command:
+        # Log message/command and notify plugins
         logging.debug ("[%s] <%s@%s> %s", "COMMAND" if is_command else "MESSAGE",
                        user, channel if not is_priv else '__priv__', message)
+        ext.notify(self, 'message',
+                   user=user, channel=(channel if not is_priv else None),
+                   message=message, notice=False)
+        
         if not is_command: return
                 
         # Split command to prefix and argument line
