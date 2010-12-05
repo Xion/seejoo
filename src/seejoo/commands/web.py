@@ -6,11 +6,37 @@ Created on 2010-12-05
 Commands used to access various web services such as Google or Wikipedia.
 '''
 from seejoo.ext import command
-import urllib2
 import json
+import re
+import urllib2
 
 
 MAX_QUERY_RESULTS = 3
+
+TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*)\<\/title\s*\>', re.IGNORECASE)
+
+
+##############################################################################
+# General
+
+@command('t')
+def get_website_title(url, **kwargs):
+    '''
+    Retrieves the title of given website and returns it.
+    '''
+    # Download the page
+    while True:
+        try:
+            site = urllib2.urlopen(url).read()
+            break
+        except ValueError:  url = "http://" + url       
+        except IOError:
+            return "(Could not retrieve page)"
+    
+    # Find the title and return it
+    m = TITLE_RE.search(site)
+    if not m:   return "(Untitled)"
+    return m.group('title')
 
 
 ###############################################################################

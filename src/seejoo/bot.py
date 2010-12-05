@@ -18,6 +18,8 @@ import re
 USER_RE = re.compile(r"(?P<nick>.*)\!(?P<id>.*)\@(?P<host>.*)")
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 
+MAX_LEN = 256
+
 
 class Bot(IRCClient):
     
@@ -83,7 +85,7 @@ class Bot(IRCClient):
             m = USER_RE.match(user)
             nick = m.groupdict().get('nick') if m else None
             
-            self.msg(nick, resp)
+            self.msg(nick, resp, MAX_LEN)
             
-        else:       self.say(channel, resp)
+        else:       self.say(channel, resp, MAX_LEN)
         logging.debug("[RESPONSE] %s", resp)

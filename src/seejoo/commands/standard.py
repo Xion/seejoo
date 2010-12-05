@@ -43,6 +43,7 @@ def evaluate_expression(exp):
             # Evaluate expression
             try:                res = eval(exp, g)
             except SyntaxError: return "Syntax error."
+            except ValueError:  return "Evaluation error."
             except ImportError: return "Sorry, only math allowed."
         
     return "= " + str(res)
