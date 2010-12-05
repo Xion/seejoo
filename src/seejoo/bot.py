@@ -18,7 +18,7 @@ import re
 USER_RE = re.compile(r"(?P<nick>.*)\!(?P<id>.*)\@(?P<host>.*)")
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 
-MAX_LEN = 256
+MAX_LEN = 384
 
 
 class Bot(IRCClient):
@@ -73,7 +73,7 @@ class Bot(IRCClient):
             cmd_object = ext.get_command(cmd)
             if not cmd_object:  resp = "Unknown command '%s'." % cmd
             else:
-                try:                    resp = unicode(cmd_object(args)).encode('ascii', 'ignore')
+                try:                    resp = unicode(cmd_object(args)).encode('utf-8', 'ignore')
                 except Exception, e:    resp = type(e).__name__ + ": " + str(e)
             
         else:   resp = ""
