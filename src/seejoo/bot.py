@@ -70,7 +70,9 @@ class Bot(IRCClient):
             # Find a command and invoke it if present
             cmd_object = ext.get_command(cmd)
             if not cmd_object:  resp = "Unknown command '%s'." % cmd
-            else:               resp = cmd_object(args)
+            else:
+                try:                    resp = str(cmd_object(args))
+                except Exception, e:    resp = type(e).__name__ + ": " + str(e)
             
         else:   resp = ""
         

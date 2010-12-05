@@ -24,7 +24,8 @@ def register_command(name, cmd_object):
     @param name: A name of the command. This is also the phrase used to invoke it
     @param cmd_object: A callable object which performs the command's action.
                        It should accept a single argument which will be
-                       a string containing command's invocation parameters.
+                       a string containing command's invocation parameters,
+                       as well as keywords arguments such as 'user'.
     '''
     if not name or len(name) == 0:
         logging.error('Command name must not be empty.') ; return
