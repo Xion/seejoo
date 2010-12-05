@@ -13,11 +13,6 @@ import json
 MAX_QUERY_RESULTS = 3
 
 
-@command('test')
-def ble(arg, **kwargs):
-    return "I've read %s" % arg if arg else "Works."
-
-
 ###############################################################################
 # Google
 

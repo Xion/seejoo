@@ -9,6 +9,18 @@ from seejoo.ext import command
 import math
 
 
+@command('test')
+def ble(arg, **kwargs):
+    return "I've read %s" % arg if arg else "Works."
+
+@command('hi')
+def hello(arg, **kwargs):
+    return "Hello."
+
+
+###############################################################################
+# Math
+
 @command('c') 
 def evaluate_expression(exp):
     '''
@@ -22,11 +34,11 @@ def evaluate_expression(exp):
             
             # Construct a (relatively) safe dictionary of globals
             # to be used by evaluated expressions
-            def _import(name, globals={}, locals={}, from_list=[], level=-1):
+            def _imp(name, globals={}, locals={}, from_list=[], level=-1):
                 raise ImportError
-            g = math.__dict__
-            g['__builtins__'] = __builtins__
-            g['__builtins__']['__import__'] = _import
+            g = math.__dict__.copy()
+            g['__builtins__'] = __builtins__.copy()
+            g['__builtins__']['__import__'] = _imp
             
             # Evaluate expression
             try:                res = eval(exp, g)

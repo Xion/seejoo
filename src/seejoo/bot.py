@@ -71,7 +71,7 @@ class Bot(IRCClient):
             cmd_object = ext.get_command(cmd)
             if not cmd_object:  resp = "Unknown command '%s'." % cmd
             else:
-                try:                    resp = str(cmd_object(args))
+                try:                    resp = unicode(cmd_object(args)).encode('ascii', 'ignore')
                 except Exception, e:    resp = type(e).__name__ + ": " + str(e)
             
         else:   resp = ""
