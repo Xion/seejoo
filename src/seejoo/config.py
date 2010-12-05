@@ -26,10 +26,14 @@ class Config(object):
         '''
         Sets the default configuration settings.
         '''
+        # IRC options
         self.nickname = NICKNAME
         self.server = SERVER
         self.port = PORT
         self.channels = CHANNELS
+        
+        # Command options
+        self.cmd_prefix = PUBLIC_PREFIX
         
     
     def parse_args(self):
@@ -45,6 +49,7 @@ class Config(object):
         op = OptionParser()
         gen_opts = OptionGroup(op, "General options")
         irc_opts = OptionGroup(op, "IRC options", "These options control bot behavior in the IRC network.")
+        cmd_opts = OptionGroup(op, "Command options")
         
         # Set options in groups
         gen_opts.add_option("--cfg", "--config", dest="config_file",
@@ -60,10 +65,14 @@ class Config(object):
         irc_opts.add_option("-c", "--chan", "--channel", dest="channels", action="append",
                             help="CHANNEL which the bot shall reside in. This option can be specified multiple times.",
                             metavar="CHANNEL")
+        cmd_opts.add_option("--prefix", dest="cmd_prefix",
+                            help="PREFIX to be used in public channels before commands; a dot by default",
+                            metavar="PREFIX")
         
         # Add groups to parser
         op.add_option_group(gen_opts)
         op.add_option_group(irc_opts)
+        op.add_option_group(cmd_opts)
         
         # Do the parsing and read the specified config file, if supplied
         (options, _) = op.parse_args()
@@ -95,6 +104,7 @@ class Config(object):
             self.server = cfg.get("server", self.server)
             self.port = cfg.get("port", self.port)
             self.channels = cfg.get("channels", self.channels)
+            self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
             
         except Exception, e:
             
@@ -108,10 +118,14 @@ class Config(object):
 ###############################################################################
 # Default configuration
 
+# IRC options
 NICKNAME = 'seejoo'
 SERVER = 'irc.freenode.net'
 PORT = 6667
 CHANNELS = ['#cipra']
+
+# Command options
+PUBLIC_PREFIX = '.'
 
 
 ###############################################################################

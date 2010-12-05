@@ -27,7 +27,7 @@ def main():
     # Read the config from default config file if it exists
     # and PyYAML package is present
     try:
-        import yaml
+        import yaml                                                 # @UnusedImport
         if os.path.exists(CONFIG_FILE): config.load_from_file(CONFIG_FILE)
     except ImportError:
         pass
@@ -36,8 +36,8 @@ def main():
     config.parse_args()
     
     # Start the bot
-    reactor.connectTCP(config.server, config.port, BotFactory())
-    reactor.run()
+    reactor.connectTCP(config.server, config.port, BotFactory())    # @UndefinedVariable
+    reactor.run()                                                   # @UndefinedVariable
     
     
 if __name__ == '__main__':
