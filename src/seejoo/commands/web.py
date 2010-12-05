@@ -7,6 +7,7 @@ Commands used to access various web services such as Google or Wikipedia.
 '''
 from seejoo.ext import command
 import json
+from xml.etree import ElementTree 
 import re
 import urllib2
 
@@ -77,6 +78,25 @@ def get_website_title(url, **kwargs):
     m = TITLE_RE.search(site)
     if not m:   return "(Untitled)"
     return m.group('title')
+
+@command('rss')
+def get_recent_rss_items(url):
+    '''
+    Retrieves the few most recent items from the given RSS feed.
+    '''
+    rss = download(url)
+    if not rss: return "Could not retrieve RSS feed."
+    rss_xml = ElementTree.ElementTree(ElementTree.fromstring(rss))
+    
+    # Get title of channel and titles of items
+    title = rss_xml._root.find('channel/title').text
+    items = [i.text for i in rss_xml._root.findall('channel/item/title')]
+    items= items[:MAX_QUERY_RESULTS]
+    
+    # Construct result
+    res = title + " :: "
+    res += " | ".join(items)
+    return res
 
 
 ###############################################################################
