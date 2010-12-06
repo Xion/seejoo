@@ -81,26 +81,33 @@ class Bot(IRCClient):
             cmd = m.group('cmd')
             args = m.groupdict().get('args')
             
-            # Find a command and invoke it if present
-            cmd_object = ext.get_command(cmd)
-            if not cmd_object:  resp = "Unknown command '%s'." % cmd
-            else:
-                try:                    resp = unicode(cmd_object(args)).encode('utf-8', 'ignore')
-                except Exception, e:    resp = type(e).__name__ + ": " + str(e)
+            # Poll plugins for command result
+            resp = ext.notify(self, 'command', name=cmd, args=args)
+            if not resp:
+                
+                # Plugins didn't care so find a command and invoke it if present
+                cmd_object = ext.get_command(cmd)
+                if not cmd_object:  resp = "Unknown command '%s'." % cmd
+                else:
+                    try:                    resp = unicode(cmd_object(args)).encode('utf-8', 'ignore')
+                    except Exception, e:    resp = type(e).__name__ + ": " + str(e)
+                    
+                resp = [resp] # Since we expect response to be iterable
             
-        else:   resp = ""
+        else:   resp = []
         
-        # Trim and serve the response
-        resp = resp[:MESSAGE_MAX_LEN]
-        if is_priv:
-            
-            # Retrieve the nick of user
-            m = USER_RE.match(user)
-            nick = m.groupdict().get('nick') if m else None
-            
-            self.msg(nick, resp, LINE_MAX_LEN)
-            
-        else:       self.say(channel, resp, LINE_MAX_LEN)
+        # Trim and serve the responses
+        for r in resp:
+            r = r[:MESSAGE_MAX_LEN]
+            if is_priv:
+                
+                # Retrieve the nick of user
+                m = USER_RE.match(user)
+                nick = m.groupdict().get('nick') if m else None
+                
+                self.msg(nick, r, LINE_MAX_LEN)
+                
+            else:       self.say(channel, r, LINE_MAX_LEN)
         logging.debug("[RESPONSE] %s", resp)
         
         

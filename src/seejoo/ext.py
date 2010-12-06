@@ -64,7 +64,9 @@ def register_plugin(plugin):
     control bot's behavior in response to incoming events.
     A plugin is a callable that is invoked every time an IRC event occurs;
     it contains two required arguments (bot object & event type) and keyword arguments
-    specific to particular event.
+    specific to particular event. It's return value is usually ignored, except
+    for the 'command' event which - if not None - is taken as a result of the command
+    and produced by bot instead of looking up a command and executing it.
     @param plugin: Plugin object
     '''
     if not callable(plugin):
@@ -87,6 +89,7 @@ class Plugin(object):
     def nick(self, bot, old, new):                          pass
     def mode(self, bot, channel, user, set, modes, args):   pass
     def topic(self, bot, channel, topic, user):             pass
+    def command(self, bot, name, args):                     pass
     
     def __call__(self, bot, event, **kwargs):
         try:                    getattr(self, event)(bot, **kwargs)
@@ -111,7 +114,17 @@ def notify(bot, event, **kwargs):
     Notifies all registered plugins about an IRC event.
     ''' 
     try:
-        for p in _plugins:  p(bot, event, **kwargs)
+        if event != 'command':
+            for p in _plugins:  p(bot, event, **kwargs)
+        else:
+            # Get command results, remove Nones
+            # and turn whole result to None if nothing remains
+            res = [p(bot, event, **kwargs) for p in _plugins]
+            res = filter(lambda x: x is not None, res)
+            if len(res) == 0:   res = None
+            
+            return res
+            
     except Exception, e:
         pass
     
