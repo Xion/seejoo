@@ -78,10 +78,15 @@ class Plugin(object):
     Base class that can be derived in by plugin objects. It intercepts
     events and converts them to method calls.
     '''
-    def join(self, bot, channel, user):             pass
-    def part(self, bot, channel, user):             pass
-    def quit(self, bot, user):                      pass
-    def message(self, bot, channel, user, notice):  pass
+    def connect(self, bot):                                 pass
+    def join(self, bot, channel, user):                     pass
+    def part(self, bot, channel, user):                     pass
+    def kick(self, bot, channel, kicker, kickee, reason):   pass
+    def quit(self, bot, user, message):                     pass
+    def message(self, bot, channel, user, type):            pass
+    def nick(self, bot, old, new):                          pass
+    def mode(self, bot, channel, user, set, modes, args):   pass
+    def topic(self, bot, channel, topic, user):             pass
     
     def __call__(self, bot, event, **kwargs):
         try:                    getattr(self, event)(bot, **kwargs)
@@ -109,3 +114,9 @@ def notify(bot, event, **kwargs):
         for p in _plugins:  p(bot, event, **kwargs)
     except Exception, e:
         pass
+    
+    
+# Flags used by seejoo when notifying plugins
+MSG_SAY = "say"
+MSG_ACTION = "action"
+MSG_NOTICE = "notice"
