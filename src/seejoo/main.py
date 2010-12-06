@@ -20,7 +20,7 @@ class BotFactory(ReconnectingClientFactory):
 # Starting point
 
 CONFIG_FILE = "config.yaml"
-def main():
+def start():
     '''
     Startup function.
     '''
@@ -41,4 +41,4 @@ def main():
     
     
 if __name__ == '__main__':
-    main()
+    start()

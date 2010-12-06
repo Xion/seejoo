@@ -84,8 +84,8 @@ class Plugin(object):
     def message(self, bot, channel, user, notice):  pass
     
     def __call__(self, bot, event, **kwargs):
-        events = { 'join': self.join, 'part': self.part, 'quit':self.quit, 'message':self.message }
-        events[event](bot, **kwargs)
+        try:                    getattr(self, event)(bot, **kwargs)
+        except AttributeError:  pass    # Should not happen
         
     
 def plugin(plugin):

@@ -18,7 +18,9 @@ import re
 USER_RE = re.compile(r"(?P<nick>.*)\!(?P<id>.*)\@(?P<host>.*)")
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 
-MAX_LEN = 384
+# Limits for messages
+LINE_MAX_LEN = 512
+MESSAGE_MAX_LEN = 768
 
 
 class Bot(IRCClient):
@@ -45,6 +47,12 @@ class Bot(IRCClient):
         '''
         Method called upon receiving a message on a channel or private message.
         '''
+        # Notify plugins
+        ext.notify(self, 'message',
+                   user=user, channel=(channel if channel != self.nickname else None),
+                   message=message, notice=False)
+        
+        # Discard server messages
         if channel == "*":  logging.debug("[SERVER] %s", message) ; return
         
         # First, check whether this is a private message and whether we shall interpret
@@ -58,13 +66,9 @@ class Bot(IRCClient):
             else:
                 is_command = True   # If no prefix defined, everything is a command
         
-        # Log message/command and notify plugins
+        # Log message/command
         logging.debug ("[%s] <%s@%s> %s", "COMMAND" if is_command else "MESSAGE",
                        user, channel if not is_priv else '__priv__', message)
-        ext.notify(self, 'message',
-                   user=user, channel=(channel if not is_priv else None),
-                   message=message, notice=False)
-        
         if not is_command: return
                 
         # Split command to prefix and argument line
@@ -82,14 +86,15 @@ class Bot(IRCClient):
             
         else:   resp = ""
         
-        # Serve the response
+        # Trim and serve the response
+        resp = resp[:MESSAGE_MAX_LEN]
         if is_priv:
             
             # Retrieve the nick of user
             m = USER_RE.match(user)
             nick = m.groupdict().get('nick') if m else None
             
-            self.msg(nick, resp, MAX_LEN)
+            self.msg(nick, resp, LINE_MAX_LEN)
             
-        else:       self.say(channel, resp, MAX_LEN)
+        else:       self.say(channel, resp, LINE_MAX_LEN)
         logging.debug("[RESPONSE] %s", resp)
