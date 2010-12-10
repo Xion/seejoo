@@ -6,7 +6,10 @@ Created on 08-12-2010
 Greetings plugin. Allows users to specify personalized greetings
 and have them used by bot when they enter the channel.
 '''
-from seejoo.ext import Plugin, plugin
+import json
+import os.path
+from seejoo.ext import Plugin, plugin, get_storage_dir
+import seejoo.bot
 
 
 @plugin
@@ -18,11 +21,49 @@ class Greetings(Plugin):
         '''
         Constructor.
         '''
+        self.greets = {}
+        
+        # Load the greets
+        self.file = get_storage_dir(self) + 'greets.json'
+        self._load()
+        
+    def _load(self):
+        '''
+        Loads the greetings from internal file.
+        '''
+        if os.path.exists(self.file):
+            with open(self.file) as f:
+                self.greets = json.load(f) 
+        
+    def _save(self):
+        '''
+        Saves the greetings to internal file.
+        '''
+        with open(self.file, 'w') as f:
+            json.dump(self.greets, f)
     
     def join(self, bot, channel, user):
         '''
         Called when user joins a channel.
         '''
-        if user == bot.nickname:    return  # Only interested in others joining
+        # Retrieve the nick
+        nick = seejoo.bot.USER_RE.match(user).groupdict().get('nick')
+        if nick == bot.nickname:    return  # Only interested in others joining
         
-        #...
+        # Check if we have greeting and serve it
+        if nick in self.greets:
+            bot.say(channel, str(self.greets[nick]), seejoo.bot.LINE_MAX_LEN)
+            
+    def command(self, bot, user, cmd, args):
+        '''
+        Called when user issues a command.
+        '''
+        if cmd != 'greet': return  # Only interested in this command
+        
+        # Remember the greeting
+        nick = seejoo.bot.USER_RE.match(user).groupdict().get('nick')
+        self.greets[nick] = str(args)
+        self._save()
+        
+        # Serve a response
+        return "Greeting %s for user '%s'" % ('set' if args else 'reset', nick)

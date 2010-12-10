@@ -16,7 +16,7 @@ import re
 
 
 # Regular expressions, compiled for speed
-USER_RE = re.compile(r"(?P<nick>.*)\!(?P<id>.*)\@(?P<host>.*)")
+USER_RE = re.compile(r"(?P<nick>[^\!]+)(\!(?P<id>[^\@]+)?\@(?P<host>.*))?")
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 
 # Limits for messages
@@ -83,7 +83,7 @@ class Bot(IRCClient):
             args = m.groupdict().get('args')
             
             # Poll plugins for command result
-            resp = ext.notify(self, 'command', name=cmd, args=args)
+            resp = ext.notify(self, 'command', user=user, cmd=cmd, args=args)
             if not resp:
                 
                 # Plugins didn't care so find a command and invoke it if present

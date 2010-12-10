@@ -90,10 +90,10 @@ class Plugin(object):
     def nick(self, bot, old, new):                          pass
     def mode(self, bot, channel, user, set, modes, args):   pass
     def topic(self, bot, channel, topic, user):             pass
-    def command(self, bot, name, args):                     pass
+    def command(self, bot, user, cmd, args):                pass
     
     def __call__(self, bot, event, **kwargs):
-        try:                    getattr(self, event)(bot, **kwargs)
+        try:                    return getattr(self, event)(bot, **kwargs)
         except AttributeError:  pass    # Should not happen
         
     
@@ -149,7 +149,7 @@ def get_storage_dir(plugin):
     # Form the name of directory
     name = None
     try:
-        name = plugin.__name__
+        name = plugin.__class__.__name__
         name = plugin.__module__ + '.' + name
     except AttributeError:  pass
     if not name:    return None
