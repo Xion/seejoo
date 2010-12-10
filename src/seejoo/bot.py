@@ -7,6 +7,7 @@ Module containing the Bot class, derived from IRCClient.
 '''
 from seejoo import ext
 from seejoo import commands                                 #@UnusedImport
+from seejoo import plugins                                  #@UnusedImport
 from seejoo.config import config
 from twisted.words.protocols.irc import IRCClient
 import logging

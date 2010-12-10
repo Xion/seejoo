@@ -112,7 +112,7 @@ def plugin(plugin):
 def notify(bot, event, **kwargs):
     '''
     Notifies all registered plugins about an IRC event.
-    ''' 
+    '''
     try:
         if event != 'command':
             for p in _plugins:  p(bot, event, **kwargs)
@@ -121,12 +121,9 @@ def notify(bot, event, **kwargs):
             # and turn whole result to None if nothing remains
             res = [p(bot, event, **kwargs) for p in _plugins]
             res = filter(lambda x: x is not None, res)
-            if len(res) == 0:   res = None
+            return res if len(res) > 0 else None
             
-            return res
-            
-    except Exception, e:
-        pass
+    except Exception:   pass
     
     
 # Flags used by seejoo when notifying plugins
