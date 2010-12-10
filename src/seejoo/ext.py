@@ -9,6 +9,7 @@ to register them. Shall be used by external modules to add extensions to seejoo.
 import logging
 import functools
 import types
+import os
 
 
 ###############################################################################
@@ -125,7 +126,7 @@ def notify(bot, event, **kwargs):
             
             return res
             
-    except Exception, e:
+    except Exception:
         pass
     
     
@@ -133,3 +134,28 @@ def notify(bot, event, **kwargs):
 MSG_SAY = "say"
 MSG_ACTION = "action"
 MSG_NOTICE = "notice"
+
+###############################################################################
+
+def get_storage_dir(plugin):
+    '''
+    Retrieves a path to a directory which can be used for storing
+    local data, specific to a given plugin.
+    '''
+    if not plugin:  return None
+    
+    data_dir = os.path.expanduser("~/.seejoo/data/plugins")
+    
+    # Form the name of directory
+    name = None
+    try:
+        name = plugin.__name__
+        name = plugin.__module__ + '.' + name
+    except AttributeError:  pass
+    if not name:    return None
+    
+    # Make sure it exists
+    dir = "%s/%s/" % (data_dir, name)
+    if not os.path.exists(dir): os.makedirs(dir)
+    
+    return dir
