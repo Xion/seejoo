@@ -159,3 +159,4 @@ def get_storage_dir(plugin):
     if not os.path.exists(dir): os.makedirs(dir)
     
     return dir
+
