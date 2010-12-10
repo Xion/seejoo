@@ -9,7 +9,7 @@ and have them used by bot when they enter the channel.
 import json
 import os.path
 from seejoo.ext import Plugin, plugin, get_storage_dir
-import seejoo.bot
+from seejoo import util
 
 
 @plugin
@@ -47,12 +47,12 @@ class Greetings(Plugin):
         Called when user joins a channel.
         '''
         # Retrieve the nick
-        nick = seejoo.bot.USER_RE.match(user).groupdict().get('nick')
+        nick = util.get_nick(user)
         if nick == bot.nickname:    return  # Only interested in others joining
         
         # Check if we have greeting and serve it
         if nick in self.greets:
-            bot.say(channel, str(self.greets[nick]), seejoo.bot.LINE_MAX_LEN)
+            util.say(bot, channel, self.greets[nick])
             
     def command(self, bot, user, cmd, args):
         '''
@@ -61,7 +61,7 @@ class Greetings(Plugin):
         if cmd != 'greet': return  # Only interested in this command
         
         # Remember the greeting
-        nick = seejoo.bot.USER_RE.match(user).groupdict().get('nick')
+        nick = util.get_nick(user)
         self.greets[nick] = str(args)
         self._save()
         

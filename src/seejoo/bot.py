@@ -5,9 +5,8 @@ Created on 05-12-2010
 
 Module containing the Bot class, derived from IRCClient.
 '''
-from seejoo import ext
-from seejoo import commands                                 #@UnusedImport
-from seejoo import plugins                                  #@UnusedImport
+from seejoo import ext, util, commands #@UnusedImport
+from seejoo import plugins #@UnusedImport
 from seejoo.config import config
 from twisted.words.protocols.irc import IRCClient
 import logging
@@ -16,12 +15,7 @@ import re
 
 
 # Regular expressions, compiled for speed
-USER_RE = re.compile(r"(?P<nick>[^\!]+)(\!(?P<id>[^\@]+)?\@(?P<host>.*))?")
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
-
-# Limits for messages
-LINE_MAX_LEN = 512
-MESSAGE_MAX_LEN = 768
 
 
 class Bot(IRCClient):
@@ -39,14 +33,20 @@ class Bot(IRCClient):
         Method called upon successful connection to IRC server.
         '''
         self.factory.resetDelay()
-        
-        # Notify plugins and log event
         logging.debug("[CONNECT] Connected to server")
-        ext.notify(self, 'connect')
         
         # Join channels
         for chan in config.channels:    self.join(chan)
-    
+        
+        
+    def myInfo(self, servername, version, umodes, cmodes):
+        '''
+        Method called with information about the server.
+        '''
+        # Log and notify plugins
+        logging.debug("[SERVER] %s running %s; usermodes=%s, channelmodes=%s", servername, version, umodes, cmodes)
+        ext.notify(self, 'connect', servername)
+                
         
     def privmsg(self, user, channel, message):
         '''
@@ -97,18 +97,8 @@ class Bot(IRCClient):
             
         else:   resp = []
         
-        # Trim and serve the responses
-        for r in resp:
-            r = r[:MESSAGE_MAX_LEN]
-            if is_priv:
-                
-                # Retrieve the nick of user
-                m = USER_RE.match(user)
-                nick = m.groupdict().get('nick') if m else None
-                
-                self.msg(nick, r, LINE_MAX_LEN)
-                
-            else:       self.say(channel, r, LINE_MAX_LEN)
+        # Serve the responses
+        util.say(self, user if is_priv else channel, resp)
         logging.debug("[RESPONSE] %s", resp)
         
         

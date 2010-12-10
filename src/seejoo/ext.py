@@ -81,7 +81,7 @@ class Plugin(object):
     Base class that can be derived in by plugin objects. It intercepts
     events and converts them to method calls.
     '''
-    def connect(self, bot):                                 pass
+    def connect(self, bot, host):                           pass
     def join(self, bot, channel, user):                     pass
     def part(self, bot, channel, user):                     pass
     def kick(self, bot, channel, kicker, kickee, reason):   pass
