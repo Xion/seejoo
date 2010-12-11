@@ -5,9 +5,9 @@ Created on 2010-12-05
 
 Standard useful commands, such as evaluation of expressions.
 '''
+from multiprocessing import Process, Pipe
 from seejoo.ext import command
 import math
-from multiprocessing import Process, Pipe
 
 
 @command('test')
@@ -34,7 +34,7 @@ FORBIDDEN_BUILTINS = ['__import__', 'eval', 'execfile', 'compile', 'dir', 'open'
 def _eval_worker(pipe):
     '''
     Pops the incoming expressions from given Pipe, evaluates
-    them and sends the back. Continues indefinetaly.
+    them and sends the back. Continues indefinitely.
     '''
     # Construct a (relatively) safe dictionary of globals
     # to be used by evaluated expressions
@@ -63,6 +63,7 @@ def _eval_worker(pipe):
         except KeyError:            res = "Key not found."
         except NameError:           res = "Unknown or forbidden function."
         except MemoryError:         res = "Out of memory."
+        except KeyboardInterrupt:   exit(1)  # Timeout
         except Exception:           res = "Error."
 
         # Check whether the result isn't obscenely big
@@ -101,6 +102,5 @@ def evaluate_expression(exp):
     else:
         # Evaluation timed out; kill the process and return error
         eval_process.terminate()
-        eval_process.join()
         eval_process = None
         return "Operation timed out."
