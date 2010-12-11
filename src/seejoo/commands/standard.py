@@ -36,7 +36,7 @@ def evaluate_expression(exp):
             # to be used by evaluated expressions
             g = math.__dict__.copy()
             g['__builtins__'] = __builtins__.copy()
-	    for func in ['__import__', 'eval', 'exec', 'dir', 'open']:
+	    for func in ['__import__', 'eval', 'dir', 'open', 'exit']:
 	        del g['__builtins__'][func]
             
             # Evaluate expression
@@ -46,5 +46,11 @@ def evaluate_expression(exp):
 	    except NameError:	return "Unknown or forbidden function."
             except MemoryError: return "Out of memory."
 	    except Exception:	return "Error."
+
+	    # Check whether the result isn't obscenely big
+	    try:
+	        if res and len(res) > 1000:
+	            return "Too long result."
+	    except TypeError, AttributeError: pass
         
     return "= " + str(res)
