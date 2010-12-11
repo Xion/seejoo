@@ -51,8 +51,8 @@ class Greetings(Plugin):
         if nick == bot.nickname:    return  # Only interested in others joining
         
         # Check if we have greeting and serve it
-        if nick in self.greets:
-            util.say(bot, channel, self.greets[nick])
+        greet = self.greets.get(nick)
+        if greet:   util.say(bot, channel, greet)
             
     def command(self, bot, user, cmd, args):
         '''
