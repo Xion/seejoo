@@ -26,6 +26,10 @@ def hello(arg, **kwargs):
 eval_pipe_parent = None ; eval_pipe_child = None
 eval_process = None
 
+# Forbidden functionality
+FORBIDDEN_GLOBALS = ['__package__', '__file__', '__name__']
+FORBIDDEN_BUILTINS = ['__import__', 'eval', 'execfile', 'compile', 'dir', 'open', 'exit', 'quit']
+
 # Worker function for the evaluations; runs in different process
 def _eval_worker(pipe):
     '''
@@ -36,8 +40,11 @@ def _eval_worker(pipe):
     # to be used by evaluated expressions
     g = math.__dict__.copy()
     g['__builtins__'] = __builtins__.copy()
-    for func in ['__import__', 'eval', 'dir', 'open', 'exit']:
-        del g['__builtins__'][func]
+    for func in FORBIDDEN_BUILTINS:
+        if func in g['__builtins__']:
+            del g['__builtins__'][func]
+    for func in FORBIDDEN_GLOBALS:
+        if func in g:   del g[func]
         
     while True:
         try:                exp = pipe.recv()
@@ -47,15 +54,20 @@ def _eval_worker(pipe):
         try:
             res = eval(exp, g)
             res = "= " + str(res)
-        except SyntaxError: res = "Syntax error."
-        except ValueError:  res = "Evaluation error."
-        except NameError:   res = "Unknown or forbidden function."
-        except MemoryError: res = "Out of memory."
-        except Exception:   res = "Error."
+        except SyntaxError:         res = "Syntax error."
+        except ValueError:          res = "Evaluation error."
+        except TypeError:           res = "Type mismatch."
+        except OverflowError:       res = "Overflow."
+        except FloatingPointError:  res = "Floating point exception."
+        except ZeroDivisionError:   res = "Division by zero."
+        except KeyError:            res = "Key not found."
+        except NameError:           res = "Unknown or forbidden function."
+        except MemoryError:         res = "Out of memory."
+        except Exception:           res = "Error."
 
         # Check whether the result isn't obscenely big
         try:
-            if res and len(res) > 1000:
+            if res and len(res) > 1024:
                 res = "Too long result."
         except TypeError, AttributeError: pass
         
@@ -89,5 +101,6 @@ def evaluate_expression(exp):
     else:
         # Evaluation timed out; kill the process and return error
         eval_process.terminate()
+        eval_process.join()
         eval_process = None
         return "Operation timed out."
