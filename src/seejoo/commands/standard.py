@@ -7,6 +7,7 @@ Standard useful commands, such as evaluation of expressions.
 '''
 from seejoo.ext import command
 import math
+import thread, time
 
 
 @command('test')
@@ -21,7 +22,10 @@ def hello(arg, **kwargs):
 ###############################################################################
 # Math
 
-@command('c') 
+# Timeout for evaluation in seconds
+EVAL_TIMEOUT = 5
+
+#@command('c') 
 def evaluate_expression(exp):
     '''
     Evaluates given expression.
@@ -38,14 +42,16 @@ def evaluate_expression(exp):
             g['__builtins__'] = __builtins__.copy()
 	    for func in ['__import__', 'eval', 'dir', 'open', 'exit']:
 	        del g['__builtins__'][func]
-            
+
             # Evaluate expression
-            try:                res = eval(exp, g)
-            except SyntaxError: return "Syntax error."
-            except ValueError:  return "Evaluation error."
-	    except NameError:	return "Unknown or forbidden function."
-            except MemoryError: return "Out of memory."
-	    except Exception:	return "Error."
+            try:
+	        res = eval(exp, g)
+            except SyntaxError: 	return "Syntax error."
+            except ValueError:  	return "Evaluation error."
+	    except NameError:		return "Unknown or forbidden function."
+	    except KeyboardInterrupt:	return "Operation timed out."
+            except MemoryError: 	return "Out of memory."
+	    except Exception:		return "Error."
 
 	    # Check whether the result isn't obscenely big
 	    try:
