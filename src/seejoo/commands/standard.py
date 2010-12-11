@@ -36,14 +36,14 @@ def evaluate_expression(exp):
             # to be used by evaluated expressions
             g = math.__dict__.copy()
             g['__builtins__'] = __builtins__.copy()
-            del g['__builtins__']['__import__']
-	    del g['__builtins__']['eval']
-	    del g['__builtins__']['dir']
+	    for func in ['__import__', 'eval', 'exec', 'dir', 'open']:
+	        del g['__builtins__'][func]
             
             # Evaluate expression
             try:                res = eval(exp, g)
             except SyntaxError: return "Syntax error."
             except ValueError:  return "Evaluation error."
+	    except NameError:	return "Unknown or forbidden function."
             except MemoryError: return "Out of memory."
 	    except Exception:	return "Error."
         
