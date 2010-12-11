@@ -5,8 +5,9 @@ Created on 2010-12-10
 
 Utility module.
 '''
-import re
 import functools
+import logging
+import re
 
 
 ###############################################################################
@@ -20,6 +21,9 @@ def say(bot, channel, messages):
     '''
     Sends message to given channel, which can also be a nick.
     '''
+    # Ensure we have a list of strings
+    if isinstance(messages, basestring):    messages = [messages]
+    
     # Try to get nick; if not, then just assume it's a channel message
     target = get_nick(channel) or channel
     
@@ -27,6 +31,7 @@ def say(bot, channel, messages):
     messages = [m[:MESSAGE_MAX_LEN] for m in messages]            
     for m in messages:
         bot.msg(target, str(m), LINE_MAX_LEN)
+        logging.debug("[SEND] <%s/%s> %s", "__me__", channel, m)
 
 
 ###############################################################################

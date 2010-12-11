@@ -45,7 +45,7 @@ class Bot(IRCClient):
         '''
         # Log and notify plugins
         logging.debug("[SERVER] %s running %s; usermodes=%s, channelmodes=%s", servername, version, umodes, cmodes)
-        ext.notify(self, 'connect', servername)
+        ext.notify(self, 'connect', host=servername)
                 
         
     def privmsg(self, user, channel, message):
@@ -72,7 +72,7 @@ class Bot(IRCClient):
                 is_command = True   # If no prefix defined, everything is a command
         
         # Log message/command
-        logging.debug ("[%s] <%s/%s> %s", "COMMAND" if is_command else "MESSAGE",
+        logging.info ("[%s] <%s/%s> %s", "COMMAND" if is_command else "MESSAGE",
                        user, channel if not is_priv else '__priv__', message)
         if not is_command: return
                 
@@ -97,9 +97,9 @@ class Bot(IRCClient):
             
         else:   resp = []
         
-        # Serve the responses
+        # Serve the response
+        logging.info("[RESPONSE] %s", resp)
         util.say(self, user if is_priv else channel, resp)
-        logging.debug("[RESPONSE] %s", resp)
         
         
     def action(self, user, channel, message):

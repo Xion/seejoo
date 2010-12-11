@@ -10,6 +10,7 @@ from seejoo.config import config
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 import os
+import logging
 
 
 class BotFactory(ReconnectingClientFactory): 
@@ -24,6 +25,19 @@ def start():
     '''
     Startup function.
     '''
+    # Create data directory if it doesn't exist
+    data_dir = os.path.expanduser("~/.seejoo/")
+    try:            os.makedirs(data_dir)
+    except OSError: pass
+    
+    # Set up logging
+    fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    handler = logging.FileHandler(data_dir + "seejoo.log")
+    handler.setFormatter(fmt)
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+    
     # Read the config from default config file if it exists
     # and PyYAML package is present
     try:
