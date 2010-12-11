@@ -34,17 +34,17 @@ def evaluate_expression(exp):
             
             # Construct a (relatively) safe dictionary of globals
             # to be used by evaluated expressions
-            def _imp(name, globals={}, locals={}, from_list=[], level=-1):
-                raise ImportError
             g = math.__dict__.copy()
             g['__builtins__'] = __builtins__.copy()
-            g['__builtins__']['__import__'] = _imp
+            del g['__builtins__']['__import__']
+	    del g['__builtins__']['eval']
+	    del g['__builtins__']['dir']
             
             # Evaluate expression
             try:                res = eval(exp, g)
             except SyntaxError: return "Syntax error."
             except ValueError:  return "Evaluation error."
-            except ImportError: return "Sorry, only math allowed."
             except MemoryError: return "Out of memory."
+	    except Exception:	return "Error."
         
     return "= " + str(res)
