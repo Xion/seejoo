@@ -45,5 +45,6 @@ def evaluate_expression(exp):
             except SyntaxError: return "Syntax error."
             except ValueError:  return "Evaluation error."
             except ImportError: return "Sorry, only math allowed."
+            except MemoryError: return "Out of memory."
         
     return "= " + str(res)
