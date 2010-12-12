@@ -83,7 +83,7 @@ class Memos(Plugin):
             msg_time = datetime.fromtimestamp(message['timestamp'])
             msg_time = msg_time.strftime("%Y-%m-%d %H:%M:%S")
             
-            msg = "%s <%s> %s: %s" % (str(msg_time), message['from'], nick, message['message'])
+            msg = "%s <%s> %s: %s" % (msg_time, message['from'], nick, message['message'])
             msgs.append(msg)
         util.say(bot, channel, msgs)
         
@@ -100,8 +100,11 @@ class Memos(Plugin):
         '''
         Called when user issues a command.
         '''
-        nick = util.get_nick(user)
         if cmd != 'msg':    return
+        nick = util.get_nick(user)
+        
+        # Forbid sending messages to the bot itself
+        if nick == bot.nickname:    return "I'm here, y'know." 
         
         # Get recipient and message from arguments
         try:
