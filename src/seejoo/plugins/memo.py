@@ -103,7 +103,7 @@ class Memos(Plugin):
         
         # Get recipient and message from arguments
         try:
-            recipient, message = re.split(r"\s+", args, 2)
+            recipient, message = re.split(r"\s+", args, 1)
         except ValueError:  message = None
         if not message: return "Message shall not be empty."
         
