@@ -62,7 +62,7 @@ class Greetings(Plugin):
         
         # Remember the greeting
         nick = util.get_nick(user)
-        self.greets[nick] = str(args)
+        self.greets[nick] = str(args) if args else None
         self._save()
         
         # Serve a response
