@@ -81,6 +81,8 @@ class Memos(Plugin):
         msgs = []
         for message in messages:
             msg_time = datetime.fromtimestamp(message['timestamp'])
+            msg_time = msg_time.strftime("%Y-%m-%d %H:%M:%S")
+            
             msg = "%s <%s> %s: %s" % (str(msg_time), message['from'], nick, message['message'])
             msgs.append(msg)
         util.say(bot, channel, msgs)
@@ -91,7 +93,7 @@ class Memos(Plugin):
         # Log delivery
         log_file = os.path.join(self.dir, "delivery.log")
         with open(log_file, 'a') as log:
-            log.writelines(msgs)
+            log.writelines(m + "\n" for m in msgs)
             
         
     def command(self, bot, user, cmd, args):
