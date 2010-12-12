@@ -86,7 +86,7 @@ class Plugin(object):
     def part(self, bot, channel, user):                     pass
     def kick(self, bot, channel, kicker, kickee, reason):   pass
     def quit(self, bot, user, message):                     pass
-    def message(self, bot, channel, user, type):            pass
+    def message(self, bot, channel, user, message, type):   pass
     def nick(self, bot, old, new):                          pass
     def mode(self, bot, channel, user, set, modes, args):   pass
     def topic(self, bot, channel, topic, user):             pass
@@ -126,8 +126,8 @@ def notify(bot, event, **kwargs):
             
             return res
             
-    except Exception:
-        pass
+    except Exception, e:
+        logging.error("Error while notifying plugins: %s - %s", type(e).__name__, e)
     
     
 # Flags used by seejoo when notifying plugins

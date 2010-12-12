@@ -52,13 +52,13 @@ class Bot(IRCClient):
         '''
         Method called upon receiving a message on a channel or private message.
         '''
+        # Discard server messages
+        if channel == "*":  logging.debug("[SERVER] %s", message) ; return
+        
         # Notify plugins
         ext.notify(self, 'message',
                    user=user, channel=(channel if channel != self.nickname else None),
                    message=message, type=ext.MSG_SAY)
-        
-        # Discard server messages
-        if channel == "*":  logging.debug("[SERVER] %s", message) ; return
         
         # First, check whether this is a private message and whether we shall interpret
         # it as a command invocation

@@ -59,7 +59,7 @@ class Memos(Plugin):
         with open(file, 'w') as f:  json.dump(items, f)
         
         
-    def message(self, bot, channel, user, type):
+    def message(self, bot, channel, user, message, type):
         '''
         Called when bot "hears" a message.
         '''
@@ -69,13 +69,12 @@ class Memos(Plugin):
         # Collect messages pertaining to this user
         messages = [] ; files = []
         for recp in self._list_recipients():
-            glob = urllib.unquote(recp)
-            if fnmatch.fnmatch(nick, glob):
+            if fnmatch.fnmatch(nick, recp):
                 
                 # Read messages from file
-                file = self._get_filename(glob)
+                file = self._get_filename(recp)
                 with open(file) as f:
-                    messages.append(json.load(f))
+                    messages.extend(json.load(f))
                 files.append(file)
                     
         # Format and send them
