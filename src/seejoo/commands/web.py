@@ -226,7 +226,9 @@ def weather_forecast(place):
         comment = m.groupdict().get("comment")        
         if degrees:
             res = "%s: %s^C" % (place, degrees)
-            if comment: res += " (" + str(comment).lower() + ")"
+            if comment:
+                comment = strip_html(comment)
+                res += " (" + str(comment).lower() + ")"
             return res
             
     return "Could not find weather information."
