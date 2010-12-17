@@ -6,8 +6,8 @@ Created on 2010-12-05
 Commands used to access various web services such as Google or Wikipedia.
 '''
 from seejoo.ext import command
+from xml.etree import ElementTree
 import json
-from xml.etree import ElementTree 
 import re
 import urllib2
 
@@ -194,3 +194,39 @@ def wikipedia_definition(term):
             return definition + " --- from: " + url
     
     return "Could not find the definition of `%s` in Wikipedia" % term
+
+
+###############################################################################
+# Weather
+
+WEATHER_DIV = re.compile(r'''
+    \<\s*div\s+class="large"\s*\>    # Opening tag
+        (?P<degrees>[+-]?\d+)        # Degrees
+        .*(\s*\<br\s*/?\>\s*)?
+        (?P<comment>.*)              # Fucking comment ;P
+    \</div\s*\>                      # Closing tag
+    ''', re.IGNORECASE | re.VERBOSE)
+
+@command('f')
+def weather_forecast(place):
+    '''
+    Polls thefuckingweather.com (sic) site for current weather data at specific
+    place. Returns a text containing current temperature, whether it's raining etc.
+    '''
+    if len(place) == 0: return "No place supplied."
+    url = "http://www.thefuckingweather.com/?zipcode=%s&CELSIUS=yes" % urllib2.quote(place)
+    fw_site = download(url)
+    if not fw_site: return "Could not retrieve weather information."
+    
+    # Look up for the contents of <div class="large">
+    m = WEATHER_DIV.search(fw_site)
+    if m:
+        # Get the contents
+        degrees = m.groupdict().get("degrees")
+        comment = m.groupdict().get("comment")        
+        if degrees:
+            res = "%s: %s^C" % (place, degrees)
+            if comment: res += " (" + str(comment).lower() + ")"
+            return res
+            
+    return "Could not find weather information."
