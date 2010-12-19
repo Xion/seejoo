@@ -77,6 +77,7 @@ class Bot(IRCClient):
         if not is_command: return
                 
         # Split command to prefix and argument line
+        resp = None
         m = COMMAND_RE.match(message)
         if m:
             cmd = m.group('cmd')
@@ -88,18 +89,17 @@ class Bot(IRCClient):
                 
                 # Plugins didn't care so find a command and invoke it if present
                 cmd_object = ext.get_command(cmd)
-                if not cmd_object:  resp = "Unknown command '%s'." % cmd
-                else:
+                if cmd_object:
                     try:                    resp = unicode(cmd_object(args)).encode('utf-8', 'ignore')
                     except Exception, e:    resp = type(e).__name__ + ": " + str(e)
-                    
-                resp = [resp] # Since we expect response to be iterable
-            
-        else:   resp = []
+                    resp = [resp] # Since we expect response to be iterable
+                elif is_priv:
+                    resp = ["Unknown command '%s'." % cmd]
         
         # Serve the response
-        logging.info("[RESPONSE] %s", resp)
-        util.say(self, user if is_priv else channel, resp)
+        if resp:
+            logging.info("[RESPONSE] %s", resp)
+            util.say(self, user if is_priv else channel, resp)
         
         
     def action(self, user, channel, message):
