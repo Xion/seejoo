@@ -146,19 +146,19 @@ def google_search_count(query):
 # Number of sentences returned in definitions
 SENTENCES = 1
 
-def find_first_sentences(html):
+def find_first_sentences(html, s = SENTENCES):
     '''
     Find the first few sentences in given string of HTML.
     '''
     dot = re.compile(r"\.\s+")
     
     pos = i = 0
-    while i < SENTENCES:
+    while i < s:
         m = dot.search(html, pos)
         if not m:   break
         pos = m.end() ; i += 1
         
-    return html[:pos]
+    return html[:pos] if pos > 0 else html
 
 def strip_footnotes(data):
     '''
@@ -196,15 +196,46 @@ def wikipedia_definition(term):
     return "Could not find the definition of `%s` in Wikipedia" % term
 
 
+##############################################################################
+# Dictionaries
+
+UD_DEF_DIV = re.compile(r'''
+    \< \s* div \s+ class="definition" \s* \>    # Opening tag
+        (?P<def>.*?)                            # Definition
+    \</div\s*\>                                 # Closing tag
+    ''', re.IGNORECASE | re.VERBOSE)
+
+@command('ud')
+def urban_dictionary(term):
+    '''
+    Looks up given term in urbandictionary.com. Returns the first sentence
+    of definition.
+    '''
+    if len(term) == 0:  return "No term supplied."
+    url = "http://www.urbandictionary.com/define.php?term=%s" % urllib2.quote(term)
+    ud_site = download(url)
+    if not ud_site: return "Could not retrieve definition of '%s'." % term
+    
+    # Look for definition
+    m = UD_DEF_DIV.search(ud_site)
+    if m:
+        definition = strip_html(m.groupdict().get('def'))
+        definition = find_first_sentences(definition, 5)
+        if len(definition.strip()) > 0:
+            return "'%s': %s" % (term, definition)
+    
+    return "Could not find definition of '%s'." % term
+
+
 ###############################################################################
 # Weather
 
 WEATHER_DIV = re.compile(r'''
-    \<\s*div\s+class="large"\s*\>    # Opening tag
-        (?P<degrees>[+-]?\d+)        # Degrees
+    \<\s* div \s+ class="large" \s* \>    # Opening tag
+        (?P<degrees>[+-]?\d+)             # Degrees
         .*(\s*\<br\s*/?\>\s*)?
-        (?P<comment>.*)              # Fucking comment ;P
-    \</div\s*\>                      # Closing tag
+        (?P<comment>.*)                   # Fucking comment ;P
+    \</div\s*\>                           # Closing tag
     ''', re.IGNORECASE | re.VERBOSE)
 
 @command('f')
