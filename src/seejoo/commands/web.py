@@ -14,7 +14,7 @@ import urllib2
 
 MAX_QUERY_RESULTS = 3
 
-TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*)\<\/title\s*\>', re.IGNORECASE)
+TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*?)\<\/title\s*\>', re.IGNORECASE)
 
 
 ##############################################################################
@@ -227,7 +227,7 @@ def weather_forecast(place):
         if degrees:
             res = "%s: %s^C" % (place, degrees)
             if comment:
-                comment = strip_html(comment)
+                comment = " ".join(re.split(r"\<br\s*/?\>", comment)) # Convert br's to spaces
                 res += " (" + str(comment).lower() + ")"
             return res
             
