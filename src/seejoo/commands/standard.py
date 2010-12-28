@@ -99,7 +99,9 @@ def evaluate_expression(exp):
     # Push expression through the pipe and wait for result
     eval_pipe_parent.send(exp)
     if eval_pipe_parent.poll(EVAL_TIMEOUT):
-        return str(eval_pipe_parent.recv())
+        res = str(eval_pipe_parent.recv())
+        res = filter(lambda x: ord(x) >= 32, res)   # Sanitize result
+        return res        
     else:
         # Evaluation timed out; kill the process and return error
         os.kill(eval_process.pid, 9)    # This will leave defunct process; take care of it later
