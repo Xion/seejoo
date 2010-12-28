@@ -8,6 +8,7 @@ Standard useful commands, such as evaluation of expressions.
 from multiprocessing import Process, Pipe
 from seejoo.ext import command
 import math
+import os
 
 
 @command('test')
@@ -101,6 +102,6 @@ def evaluate_expression(exp):
         return str(eval_pipe_parent.recv())
     else:
         # Evaluation timed out; kill the process and return error
-        eval_process.terminate()
+        os.kill(eval_process.pid, 9)    # This will leave defunct process; take care of it later
         eval_process = None
         return "Operation timed out."
