@@ -237,6 +237,11 @@ WEATHER_DIV = re.compile(r'''
         (?P<comment>.*)                   # Fucking comment ;P
     \</div\s*\>                           # Closing tag
     ''', re.IGNORECASE | re.VERBOSE)
+WEATHER_PLACE_DIV = re.compile(r'''
+    \<\s* div \s* \> \s* \< \s* span \s+ class="small" \s* \>    # Opening tag
+        (?P<place>[\w\s,]+)                                      # Place
+    \</span \s* \> \s* \</div \s*\>                              # Closing tag
+    ''', re.IGNORECASE | re.VERBOSE)
 
 @command('f')
 def weather_forecast(place):
@@ -256,6 +261,11 @@ def weather_forecast(place):
         degrees = m.groupdict().get("degrees")
         comment = m.groupdict().get("comment")        
         if degrees:
+            
+            # Try to fetch the actual place
+            m = WEATHER_PLACE_DIV.search(fw_site)
+            if m:   place = m.groupdict().get("place", place)
+        
             res = "%s: %s^C" % (place, degrees)
             if comment:
                 comment = " ".join(re.split(r"\<br\s*/?\>", comment)) # Convert br's to spaces
