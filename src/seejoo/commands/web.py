@@ -116,6 +116,7 @@ def google_search(query):
     Performs a search using Google search engine.
     @warning: Uses deprecated Google Web Search API that has limitations to 100 queries per day.
     '''
+    if not query or len(str(query).strip()) == 0:    return "No query supplied."
     json_resp = _google_websearch(query)
     
     # Parse the response and return first few results
@@ -173,7 +174,7 @@ def wikipedia_definition(term):
     Looks up given term in English Wikipedia and returns first few sentences
     of the definition.
     '''
-    if len(term) == 0:  return "No query supplied."
+    if not term or len(str(term).strip()) == 0:  return "No term supplied."
     url = "http://en.wikipedia.org/wiki/%s" % urllib2.quote(term)
     wp_site = download(url)
     if not wp_site: return "Could not connect to Wikipedia."
@@ -211,7 +212,7 @@ def urban_dictionary(term):
     Looks up given term in urbandictionary.com. Returns the first sentence
     of definition.
     '''
-    if len(term) == 0:  return "No term supplied."
+    if not term or len(str(term).strip()) == 0:  return "No term supplied."
     url = "http://www.urbandictionary.com/define.php?term=%s" % urllib2.quote(term)
     ud_site = download(url)
     if not ud_site: return "Could not retrieve definition of '%s'." % term
@@ -249,7 +250,7 @@ def weather_forecast(place):
     Polls thefuckingweather.com (sic) site for current weather data at specific
     place. Returns a text containing current temperature, whether it's raining etc.
     '''
-    if len(place) == 0: return "No place supplied."
+    if not place or len(str(place).strip()) == 0: return "No place supplied."
     url = "http://www.thefuckingweather.com/?zipcode=%s&CELSIUS=yes" % urllib2.quote(place)
     fw_site = download(url)
     if not fw_site: return "Could not retrieve weather information."
