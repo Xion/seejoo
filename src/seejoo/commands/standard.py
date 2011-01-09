@@ -28,7 +28,7 @@ eval_pipe_parent = None ; eval_pipe_child = None
 eval_process = None
 
 # Forbidden functionality
-FORBIDDEN_GLOBALS = ['__package__', '__file__', '__name__']
+FORBIDDEN_GLOBALS = ['__package__', '__file__', '__name__', '__doc__']
 FORBIDDEN_BUILTINS = ['__import__', 'eval', 'execfile', 'compile', 'dir', 'open', 'exit', 'quit']
 
 # Worker function for the evaluations; runs in different process

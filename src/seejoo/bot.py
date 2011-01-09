@@ -63,7 +63,10 @@ class Bot(IRCClient):
         # First, check whether this is a private message and whether we shall interpret
         # it as a command invocation
         is_priv = channel == self.nickname
-        if is_priv: is_command = True
+        if is_priv:
+            is_command = True   # On priv, everything's a command
+            if config.cmd_prefix and message.startswith(config.cmd_prefix): # Prefix is optional; get rid of it if present
+                message = message[len(config.cmd_prefix):]
         else:
             if config.cmd_prefix:
                 is_command = message.startswith(config.cmd_prefix)
