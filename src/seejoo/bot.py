@@ -93,7 +93,7 @@ class Bot(IRCClient):
                 # Plugins didn't care so find a command and invoke it if present
                 cmd_object = ext.get_command(cmd)
                 if cmd_object:
-                    try:                    resp = unicode(cmd_object(args)).encode('utf-8', 'ignore')
+                    try:                    resp = cmd_object(args)
                     except Exception, e:    resp = type(e).__name__ + ": " + str(e)
                     resp = [resp] # Since we expect response to be iterable
                 elif is_priv:

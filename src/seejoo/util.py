@@ -30,7 +30,7 @@ def say(bot, channel, messages):
     # Trim and post messages
     messages = [m[:MESSAGE_MAX_LEN] for m in messages]            
     for m in messages:
-        bot.msg(target, str(m), LINE_MAX_LEN)
+        bot.msg(target, unicode(m).encode('utf-8', 'ignore'), LINE_MAX_LEN)
         logging.debug("[SEND] <%s/%s> %s", "__me__", channel, m)
 
 
