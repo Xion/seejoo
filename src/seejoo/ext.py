@@ -6,6 +6,7 @@ Created on 2010-12-05
 Extensions module. Contains installed commands and plugins, as well as functions
 to register them. Shall be used by external modules to add extensions to seejoo.
 '''
+from seejoo.config import config
 import logging
 import functools
 import types
@@ -71,7 +72,15 @@ def register_plugin(plugin):
     @param plugin: Plugin object
     '''
     if not callable(plugin):
-        logging.error('Plugin object "%s" is not callable.', str(plugin)) ; return
+        logging.error('Plugin object "%s" is not callable.', str(plugin))
+	return
+
+    # Check if plugin is listed in the disabled_plugins option
+    try:			plugin_name = plugin.__name__
+    except AttributeError:	plugin_name = plugin.__class__.__name__
+    if plugin_name in config.disabled_plugins:
+	logging.debug("Plugin '%s' omitted due to disabled_plugins option", plugin_name)
+	return
         
     _plugins.append(plugin)
 

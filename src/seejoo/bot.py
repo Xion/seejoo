@@ -6,7 +6,7 @@ Created on 05-12-2010
 Module containing the Bot class, derived from IRCClient.
 '''
 from seejoo import ext, util, commands #@UnusedImport
-from seejoo import plugins #@UnusedImport
+from seejoo.plugins import import_plugins
 from seejoo.config import config
 from twisted.words.protocols.irc import IRCClient
 import logging
@@ -25,6 +25,7 @@ class Bot(IRCClient):
     versionEnv = os.name
     
     def __init__(self, *args, **kwargs):
+	import_plugins()
         self.nickname = config.nickname
     
     
