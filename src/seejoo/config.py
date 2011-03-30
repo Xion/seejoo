@@ -34,6 +34,7 @@ class Config(object):
         
         # Command options
         self.cmd_prefix = PUBLIC_PREFIX
+	self.disabled_plugins = DISABLED_PLUGINS
         
     
     def parse_args(self):
@@ -105,6 +106,7 @@ class Config(object):
             self.port = cfg.get("port", self.port)
             self.channels = cfg.get("channels", self.channels)
             self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
+	    self.disabled_plugins = cfg.get("disabled_plugins", self.disabled_plugins)
             
         except Exception, e:
             
@@ -126,6 +128,9 @@ CHANNELS = ['#cipra']
 
 # Command options
 PUBLIC_PREFIX = '.'
+
+# Plugin options
+DISABLED_PLUGINS = []
 
 
 ###############################################################################
