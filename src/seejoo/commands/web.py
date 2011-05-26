@@ -172,22 +172,10 @@ def get_wikipage_content(title):
            
     return content
 
-def wiki_to_plaintext(wiki):
-    '''
-    Prepares a Wiki content (in raw markup) to be displayed in plain text format.
-    '''
-    if not wiki:  return wiki
-    
-    # Remove a whole lot of unnecessary stuff
-    wiki = re.sub(r"\<\s*(\w+?)\s*\>.*?\<\/\s*\1\s*\>", "", wiki)   # HTML-like tags
-    wiki = re.sub(r"\<\!\-\-.*?\-\-\>", "", wiki)                   # HTML-like comments
-    wiki = re.sub(r"__\w+__", "", wiki)                             # __STUFF_LIKE_THIS___
-    
-    # Remove things around some useful stuff :)
-    wiki = re.sub(r"\'\'(.*?)\'\'", lambda m: '"' + m.group(1) + '"', wiki) # Quotes
-    wiki = re.sub(r"\[\[(.*?)\]\]", lambda m: m.group(1), wiki)             # Links
-    
-    return wiki
+
+WIKI_HTML_TAGS = re.compile(r'\<\s*(\w+?)(\s+\w+?\s*\=\s*".*?")*?\s*\>.*?\<\/\s*\1\s*\>')
+WIKI_HTML_COMMENTS = re.compile(r"\<\!\-\-.*?\-\-\>", re.DOTALL)
+WIKI_UNDERSCORES = re.compile(r"__\w+__")
 
 def get_definition_from_wiki(wiki, chars):
     '''
@@ -196,10 +184,10 @@ def get_definition_from_wiki(wiki, chars):
     '''
     if not wiki:  return wiki
     
-    # Remove a whole lot of unnecessary stuff
-    wiki = re.sub(r"\<\s*(\w+?)\s*\>.*?\<\/\s*\1\s*\>", "", wiki)   # HTML-like tags
-    wiki = re.sub(r"\<\!\-\-.*?\-\-\>", "", wiki)                   # HTML-like comments
-    wiki = re.sub(r"__\w+__", "", wiki)                             # __STUFF_LIKE_THIS___
+    # Remove a whole lot of unnecessary stuff (order matters!)
+    wiki = WIKI_HTML_COMMENTS.sub("", wiki)
+    wiki = WIKI_HTML_TAGS.sub("", wiki)
+    wiki = WIKI_UNDERSCORES.sub("", wiki)  # __STUFF_LIKE_THIS___
     
     # Find position of first non-whitespace character on top level of
     # double square or curly brackets
@@ -220,8 +208,11 @@ def get_definition_from_wiki(wiki, chars):
     text = wiki[pos:]
     
     # Strip unnecessary markup
+    text = re.sub(r"\{\{.*?\}\}", "", text)   # Other remaining markup -- requires refinement to support {{convert...}}
+    text = re.sub(r"\[\[(.[^\]]*?\|)?(?P<link>.*?)\]\]", lambda m: m.group("link"), text)        # Links
     text = re.sub(r"\'{3}(.*?)\'{3}", lambda m: '"' + m.group(1) + '"', text)                    # Quotes
-    text = re.sub(r"\[\[(.*?\|)?(?P<link>.*?)\]\]", lambda m: m.group("link"), text)             # Links
+    
+    text = re.sub(r"\s+\(\W*?\)", "", text)
 
     ending = '...'
     chars -= len(ending)
@@ -239,6 +230,8 @@ def wikipedia_definition(term):
     if not page:    return "Could not connect to Wikipedia."
     
     wiki_def = get_definition_from_wiki(page, 200)
+    if not wiki_def:    return "Could found the definition in Wikipedia."
+    
     wiki_url = "http://en.wikipedia.org/wiki/" + urllib2.quote(term)
     return "%s -- from: %s" % (wiki_def, wiki_url)
 
@@ -295,7 +288,7 @@ WEATHER_DIV = re.compile(r'''
     \<\s* div \s+ class="large" \s* \>    # Opening tag
         (?P<degrees>[+-]?\d+)             # Degrees
         .*(\s*\<br\s*/?\>\s*)?
-        (?P<comment>.*)                   # Fucking comment ;P
+        (?P<comment>.*)                   # Comment
     \</div\s*\>                           # Closing tag
     ''', re.IGNORECASE | re.VERBOSE)
 WEATHER_PLACE_DIV = re.compile(r'''
