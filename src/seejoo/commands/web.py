@@ -91,7 +91,7 @@ def get_recent_rss_items(url):
     # Get title of channel and titles of items
     title = rss_xml._root.find('channel/title').text
     items = [i.text for i in rss_xml._root.findall('channel/item/title')]
-    items= items[:MAX_QUERY_RESULTS]
+    items = items[:MAX_QUERY_RESULTS]
     
     # Construct result
     res = title + " :: "
@@ -144,10 +144,115 @@ def google_search_count(query):
 ###############################################################################
 # Wikipedia commands
 
-# Number of sentences returned in definitions
-SENTENCES = 1
+def get_wikipage_api_url(title, lang = 'en', format = 'json'):
+    ''' 
+    Returns an URL to Wikipedia API call that returns content of given page.
+    @note: What is actually returned is the list of most recent revisions
+    with a limit of 1. 
+    '''
+    if not title:   return None
+    url = "http://%s.wikipedia.org/w/api.php?action=query&prop=revisions&rvlimit=1&rvprop=content&format=%s&titles=%s"
+    return url % (lang, format, urllib2.quote(title))
 
-def find_first_sentences(html, s = SENTENCES):
+def get_wikipage_content(title):
+    '''
+    Returns raw markup of given Wikipedia page using API call.
+    '''
+    url = get_wikipage_api_url(title)
+    resp = download(url)
+    if not resp:    return None
+   
+    resp = json.loads(resp)
+    try:
+        pages = resp['query']['pages']
+        page = pages.values()[0]
+        content = page['revisions'][0].values()[0]
+    except (KeyError, AttributeError), _:
+        return None
+           
+    return content
+
+def wiki_to_plaintext(wiki):
+    '''
+    Prepares a Wiki content (in raw markup) to be displayed in plain text format.
+    '''
+    if not wiki:  return wiki
+    
+    # Remove a whole lot of unnecessary stuff
+    wiki = re.sub(r"\<\s*(\w+?)\s*\>.*?\<\/\s*\1\s*\>", "", wiki)   # HTML-like tags
+    wiki = re.sub(r"\<\!\-\-.*?\-\-\>", "", wiki)                   # HTML-like comments
+    wiki = re.sub(r"__\w+__", "", wiki)                             # __STUFF_LIKE_THIS___
+    
+    # Remove things around some useful stuff :)
+    wiki = re.sub(r"\'\'(.*?)\'\'", lambda m: '"' + m.group(1) + '"', wiki) # Quotes
+    wiki = re.sub(r"\[\[(.*?)\]\]", lambda m: m.group(1), wiki)             # Links
+    
+    return wiki
+
+def get_definition_from_wiki(wiki, chars):
+    '''
+    Retrieves the beginning of definition text from given Wiki page,
+    converted from Wiki markup to plaintext.
+    '''
+    if not wiki:  return wiki
+    
+    # Remove a whole lot of unnecessary stuff
+    wiki = re.sub(r"\<\s*(\w+?)\s*\>.*?\<\/\s*\1\s*\>", "", wiki)   # HTML-like tags
+    wiki = re.sub(r"\<\!\-\-.*?\-\-\>", "", wiki)                   # HTML-like comments
+    wiki = re.sub(r"__\w+__", "", wiki)                             # __STUFF_LIKE_THIS___
+    
+    # Find position of first non-whitespace character on top level of
+    # double square or curly brackets
+    square_depth = 0
+    curly_depth = 0
+    for i in xrange(0, len(wiki)):
+        c = wiki[i]
+       
+        if c == '[':   square_depth += 1
+        elif c == '{':  curly_depth += 1
+        elif c == ']':  square_depth -= 1
+        elif c == '}':  curly_depth -= 1
+        elif not c.isspace() and (square_depth == curly_depth == 0):
+            pos = i
+            break
+    else:
+        return None
+    text = wiki[pos:]
+    
+    # Strip unnecessary markup
+    text = re.sub(r"\'{3}(.*?)\'{3}", lambda m: '"' + m.group(1) + '"', text)                    # Quotes
+    text = re.sub(r"\[\[(.*?\|)?(?P<link>.*?)\]\]", lambda m: m.group("link"), text)             # Links
+
+    ending = '...'
+    chars -= len(ending)
+    return text[:chars] + ending
+    
+        
+@command('w')
+def wikipedia_definition(term):
+    '''
+    Looks up given term in English Wikipedia and returns the beginning
+    of its definition.
+    '''
+    if not term or len(str(term).strip()) == 0:  return "No term supplied."
+    page = get_wikipage_content(term)
+    if not page:    return "Could not connect to Wikipedia."
+    
+    wiki_def = get_definition_from_wiki(page, 200)
+    wiki_url = "http://en.wikipedia.org/wiki/" + urllib2.quote(term)
+    return "%s -- from: %s" % (wiki_def, wiki_url)
+
+
+##############################################################################
+# Dictionaries
+
+UD_DEF_DIV = re.compile(r'''
+    \< \s* div \s+ class="definition" \s* \>    # Opening tag
+        (?P<def>.*?)                            # Definition
+    \</div\s*\>                                 # Closing tag
+    ''', re.IGNORECASE | re.VERBOSE)
+
+def find_first_sentences(html, s = 1):
     '''
     Find the first few sentences in given string of HTML.
     '''
@@ -160,51 +265,6 @@ def find_first_sentences(html, s = SENTENCES):
         pos = m.end() ; i += 1
         
     return html[:pos] if pos > 0 else html
-
-def strip_footnotes(data):
-    '''
-    Removes the footnote references from given data.
-    '''
-    p = re.compile(r'\[\d+\]')
-    return p.sub('', data)
-
-@command('w')
-def wikipedia_definition(term):
-    '''
-    Looks up given term in English Wikipedia and returns first few sentences
-    of the definition.
-    '''
-    if not term or len(str(term).strip()) == 0:  return "No term supplied."
-    url = "http://en.wikipedia.org/wiki/%s" % urllib2.quote(term)
-    wp_site = download(url)
-    if not wp_site: return "Could not connect to Wikipedia."
-    
-    # Look for <!-- bodytext --> and then the first <p> afterwards
-    pos = wp_site.find("<!-- bodytext -->")
-    if pos > 0:
-        pos = wp_site.find("<p>", pos)
-        if pos > 0:
-            
-            # Found; retrieve the text afterwards, get rid of HTML tags
-            # and pick first few sentences
-            pos += len("<p>")
-            content = strip_html(wp_site[pos:])
-            definition = find_first_sentences(content)
-            definition = strip_footnotes(definition)
-            
-            return definition + " --- from: " + url
-    
-    return "Could not find the definition of `%s` in Wikipedia" % term
-
-
-##############################################################################
-# Dictionaries
-
-UD_DEF_DIV = re.compile(r'''
-    \< \s* div \s+ class="definition" \s* \>    # Opening tag
-        (?P<def>.*?)                            # Definition
-    \</div\s*\>                                 # Closing tag
-    ''', re.IGNORECASE | re.VERBOSE)
 
 @command('ud')
 def urban_dictionary(term):
