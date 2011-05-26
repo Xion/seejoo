@@ -3,3 +3,5 @@ syntax: glob
 .project
 syntax: glob
 .pydevproject
+syntax: glob
+*.pyc
