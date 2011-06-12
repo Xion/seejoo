@@ -9,13 +9,11 @@ A generalized prefix tree class.
 class PrefixTreeNode(object):
     '''
     A generalized prefix tree node. Node contains:
-    - a string key
     - data (any object)
     - links to children, each of them (i.e. links) labeled with a string
     '''
-    def __init__(self, key = None, data = None):
+    def __init__(self, data = None):
         ''' Initializes the prefix tree node. '''
-        self.key = key
         self.data = data
         self.children = {}
     
@@ -31,29 +29,19 @@ class PrefixTreeNode(object):
         '''
         if not path:    return self, ""
         
-        node = self ; parent = None
+        node = self
         ahead = path
         while len(ahead) > 0:
-            if not node.key:
-                if len(node.children) == 0:
-                    # Absolute leaf with no data; if we got here,
-                    # there is nothing else we can do so we return it
-                    return node, path[:path.find(ahead)]
-            else:
-                if not ahead.startswith(node.key):
-                    # Divergence; parent should accommodate for potential new node
-                    return parent, path[:path.find(ahead)]
-                ahead = ahead[len(node.key):]
-            
             # Pick a path to go down
             for c in sorted(node.children.keys(), key = len, reverse = True):
                 if len(c) > len(ahead): continue
                 if ahead.startswith(c):
-                    node, parent = node.children[c], node
+                    node = node.children[c]
                     ahead = ahead[len(c):]
                     break
             else:
-                # No path to go down
+                # No path to go down;
+                # either a divergence or leaf
                 return node, path[:path.find(ahead)]
         
         return node, path   # Found a match
@@ -75,7 +63,7 @@ class PrefixTreeNode(object):
         path.startswith(self.key) must be True
         @return: Whether the item could be added
         '''
-        if not path and not self.key:
+        if not path:
             # Special case for insertion in the node itself
             if self.data:   return False
             self.data = data
@@ -87,7 +75,7 @@ class PrefixTreeNode(object):
         if path == tree_path:   return False
         
         remaining = path[len(tree_path):]
-        node.children[remaining] = PrefixTreeNode(key = None, data = data)
+        node.children[remaining] = PrefixTreeNode(data)
         return True
             
         
