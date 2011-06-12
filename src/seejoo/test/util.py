@@ -20,3 +20,5 @@ class PrefixTreeTest(unittest.TestCase):
             
         for key, data in self.TEST_ITEMS.items():
             self.assertEquals(tree.get(key), data)
+
+        print tree.search('a')

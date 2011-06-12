@@ -59,24 +59,52 @@ class PrefixTreeNode(object):
     def add(self, path, data):
         '''
         Adds an item to this node subtree.
-        @note: Given path should be valid within subtree, i.e.
-        path.startswith(self.key) must be True
         @return: Whether the item could be added
         '''
+        # Special case for insertion in the current node
         if not path:
-            # Special case for insertion in the node itself
             if self.data:   return False
             self.data = data
             return True
         
         node, tree_path = self._traverse(path)
-        if not node:    raise ValueError, "Invalid prefix tree path"
-        
         if path == tree_path:   return False
         
-        remaining = path[len(tree_path):]
-        node.children[remaining] = PrefixTreeNode(data)
+        new_node = PrefixTreeNode(data)
+        
+        # Relocate nodes that should be children of the newly created one
+        rest = path[len(tree_path):]
+        to_delete = []
+        for label, child in node.children.items():
+            if label.startswith(rest):
+                new_label = label[len(rest):]
+                new_node.children[new_label] = child
+                to_delete.append(label)
+        for label in to_delete:
+            del node.children[label]
+        
+        node.children[rest] = new_node
         return True
+    
+    def search(self, prefix):
+        '''
+        Searches for all nodes that match given prefix.
+        @return: A dictionary of matches, with values being data
+        of nodes found
+        '''
+        res = {}
+        node, path = self._traverse(prefix)
+        
+        # Do a DFS from given node
+        stack = [(path, node)]
+        while len(stack) > 0:
+            curr_prefix, curr_node = stack.pop()
+            res[curr_prefix] = curr_node
+            
+            for child_label, child_node in curr_node.children.items():
+                stack.append((curr_prefix + child_label, child_node))
+                
+        return res
             
         
     def __str__(self):
