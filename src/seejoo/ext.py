@@ -69,18 +69,21 @@ def register_plugin(plugin):
     specific to particular event. It's return value is usually ignored, except
     for the 'command' event which - if not None - is taken as a result of the command
     and produced by bot instead of looking up a command and executing it.
+    
+    Plugins can also have a list of commands specified explicitly as their 'commands'
+    attribute. This way the bot can offer help for the commands upon request.
     @param plugin: Plugin object
     '''
     if not callable(plugin):
         logging.error('Plugin object "%s" is not callable.', str(plugin))
-	return
+        return
 
     # Check if plugin is listed in the disabled_plugins option
     try:			plugin_name = plugin.__name__
     except AttributeError:	plugin_name = plugin.__class__.__name__
     if plugin_name in config.disabled_plugins:
-	logging.debug("Plugin '%s' omitted due to disabled_plugins option", plugin_name)
-	return
+        logging.debug("Plugin '%s' omitted due to disabled_plugins option", plugin_name)
+        return
         
     _plugins.append(plugin)
 
@@ -144,7 +147,9 @@ MSG_SAY = "say"
 MSG_ACTION = "action"
 MSG_NOTICE = "notice"
 
+
 ###############################################################################
+# API available for plugins
 
 def get_storage_dir(plugin):
     '''

@@ -5,7 +5,8 @@ Created on 05-12-2010
 
 Module containing the Bot class, derived from IRCClient.
 '''
-from seejoo import ext, util, commands #@UnusedImport
+from seejoo import ext, commands #@UnusedImport
+from seejoo.util import irc
 from seejoo.plugins import import_plugins
 from seejoo.config import config
 from twisted.words.protocols.irc import IRCClient
@@ -14,9 +15,11 @@ import os
 import re
 
 
+###############################################################################
+# Bot class
+
 # Regular expressions, compiled for speed
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
-
 
 class Bot(IRCClient):
     
@@ -25,7 +28,7 @@ class Bot(IRCClient):
     versionEnv = os.name
     
     def __init__(self, *args, **kwargs):
-	import_plugins()
+        import_plugins()
         self.nickname = config.nickname
     
     
@@ -46,7 +49,7 @@ class Bot(IRCClient):
         '''
         # Log and notify plugins
         logging.debug("[SERVER] %s running %s; usermodes=%s, channelmodes=%s", servername, version, umodes, cmodes)
-        ext.notify(self, 'connect', host=servername)
+        ext.notify(self, 'connect', host = servername)
                 
         
     def privmsg(self, user, channel, message):
@@ -58,8 +61,8 @@ class Bot(IRCClient):
         
         # Notify plugins
         ext.notify(self, 'message',
-                   user=user, channel=(channel if channel != self.nickname else None),
-                   message=message, type=ext.MSG_SAY)
+                   user = user, channel = (channel if channel != self.nickname else None),
+                   message = message, type = ext.MSG_SAY)
         
         # First, check whether this is a private message and whether we shall interpret
         # it as a command invocation
@@ -88,7 +91,7 @@ class Bot(IRCClient):
             args = m.groupdict().get('args')
             
             # Poll plugins for command result
-            resp = ext.notify(self, 'command', user=user, cmd=cmd, args=args)
+            resp = ext.notify(self, 'command', user = user, cmd = cmd, args = args)
             if not resp:
                 
                 # Plugins didn't care so find a command and invoke it if present
@@ -103,7 +106,7 @@ class Bot(IRCClient):
         # Serve the response
         if resp:
             logging.info("[RESPONSE] %s", resp)
-            util.say(self, user if is_priv else channel, resp)
+            irc.say(self, user if is_priv else channel, resp)
         
         
     def action(self, user, channel, message):
@@ -115,8 +118,8 @@ class Bot(IRCClient):
         # Notify plugins and log message
         logging.debug("[ACTION] <%s/%s> %s", user, channel if not is_priv else '__priv__', message)
         ext.notify(self, 'message',
-                   user=user, channel=(channel if not is_priv else None),
-                   message=message, type=ext.MSG_ACTION)
+                   user = user, channel = (channel if not is_priv else None),
+                   message = message, type = ext.MSG_ACTION)
         
     def noticed(self, user, channel, message):
         '''
@@ -127,8 +130,8 @@ class Bot(IRCClient):
         # Notify plugins and log the message
         logging.debug("[NOTICE] <%s/%s> %s", user, channel if not is_priv else '__priv__', message)
         ext.notify(self, 'message',
-                   user=user, channel=(channel if not is_priv else None),
-                   message=message, type=ext.MSG_NOTICE)
+                   user = user, channel = (channel if not is_priv else None),
+                   message = message, type = ext.MSG_NOTICE)
         
     def modeChanged(self, user, channel, set, modes, args):
         '''
@@ -137,7 +140,7 @@ class Bot(IRCClient):
         # Notify plugins and log the message
         logging.debug("[MODE] %s sets %s%s %s for %s", user, "+" if set else "-", modes, args, channel)
         ext.notify(self, 'mode',
-                   user=user, channel=channel, set=set, modes=modes, args=args)
+                   user = user, channel = channel, set = set, modes = modes, args = args)
         
     def topicUpdated(self, user, channel, newTopic):
         '''
@@ -145,7 +148,7 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log message
         logging.debug("[TOPIC] <%s/%s> %s", user, channel, newTopic)
-        ext.notify(self, 'topic', channel=channel, topic=newTopic, user=user)
+        ext.notify(self, 'topic', channel = channel, topic = newTopic, user = user)
         
     def joined(self, channel):
         '''
@@ -153,7 +156,7 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log the event
         logging.debug("[JOIN] %s to %s", self.nickname, channel)
-        ext.notify(self, 'join', channel=channel, user=self.nickname)
+        ext.notify(self, 'join', channel = channel, user = self.nickname)
         
     def userJoined(self, user, channel):
         '''
@@ -161,7 +164,7 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log event
         logging.debug("[JOIN] %s to %s", user, channel)
-        ext.notify(self, 'join', channel=channel, user=user)
+        ext.notify(self, 'join', channel = channel, user = user)
         
     def left(self, channel):
         '''
@@ -169,7 +172,7 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log event
         logging.debug("[PART] %s from %s", self.nickname, channel)
-        ext.notify(self, 'part', user=self.nickname, channel=channel)
+        ext.notify(self, 'part', user = self.nickname, channel = channel)
         
     def userLeft(self, user, channel):
         '''
@@ -177,7 +180,7 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log event
         logging.debug("[PART] %s from %s", self.nickname, channel)
-        ext.notify(self, 'part', user=self.nickname, channel=channel)
+        ext.notify(self, 'part', user = self.nickname, channel = channel)
         
     def kickedFrom(self, channel, kicker, message):
         '''
@@ -185,7 +188,7 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log event
         logging.debug("[KICK] %s from %s by %s (%s)", self.nickname, channel, kicker, message)
-        ext.notify(self, 'kick', channel=channel, kicker=kicker, kickee=self.nickname, reason=message)
+        ext.notify(self, 'kick', channel = channel, kicker = kicker, kickee = self.nickname, reason = message)
         
     def userKicked(self, kickee, channel, kicker, message):
         '''
@@ -193,7 +196,7 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log event
         logging.debug("[KICK] %s from %s by %s (%s)", kickee, channel, kicker, message)
-        ext.notify(self, 'kick', channel=channel, kicker=kicker, kickee=kickee, reason=message)
+        ext.notify(self, 'kick', channel = channel, kicker = kicker, kickee = kickee, reason = message)
         
     def nickChanged(self, nick):
         '''
@@ -205,7 +208,7 @@ class Bot(IRCClient):
         
         # Notify plugins and log event
         logging.debug("[NICK] %s -> %s", old, nick)
-        ext.notify(self, 'nick', old=old, new=nick)
+        ext.notify(self, 'nick', old = old, new = nick)
         
     def userRenamed(self, oldname, newname):
         '''
@@ -213,7 +216,7 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log event
         logging.debug("[NICK] %s -> %s", oldname, newname)
-        ext.notify(self, 'nick', old=oldname, new=newname)
+        ext.notify(self, 'nick', old = oldname, new = newname)
         
     def userQuit(self, user, message):
         '''
@@ -221,4 +224,4 @@ class Bot(IRCClient):
         '''
         # Notify plugins and log event
         logging.debug("[QUIT] %s (%s)", user, message)
-        ext.notify(self, 'quit', user=user, message=message)
+        ext.notify(self, 'quit', user = user, message = message)

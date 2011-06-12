@@ -3,7 +3,7 @@ Created on 2010-12-10
 
 @author: xion
 
-Utility module.
+Utility module containing IRC-related functions.
 '''
 import functools
 import logging
