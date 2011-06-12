@@ -34,7 +34,7 @@ class Config(object):
         
         # Command options
         self.cmd_prefix = PUBLIC_PREFIX
-	self.disabled_plugins = DISABLED_PLUGINS
+        self.disabled_plugins = DISABLED_PLUGINS
         
     
     def parse_args(self):
@@ -53,22 +53,22 @@ class Config(object):
         cmd_opts = OptionGroup(op, "Command options")
         
         # Set options in groups
-        gen_opts.add_option("--cfg", "--config", dest="config_file",
-                            help="FILE (in YAML format) from which the configuration options shall be read",
-                            metavar="FILE")
-        irc_opts.add_option("-n", "--nickname", dest="nickname",
-                            help="NICKNAME which will be used by the bot", metavar="NICKNAME")
-        irc_opts.add_option("-s", "--server", dest="server",
-                            help="SERVER to which bot shall connect", metavar="SERVER")
-        irc_opts.add_option("-p", "--port", dest="port", type="int",
-                            help="Server's PORT to which bot shall connect; usually 6667, which is default",
-                            metavar="PORT")
-        irc_opts.add_option("-c", "--chan", "--channel", dest="channels", action="append",
-                            help="CHANNEL which the bot shall reside in. This option can be specified multiple times.",
-                            metavar="CHANNEL")
-        cmd_opts.add_option("--prefix", dest="cmd_prefix",
-                            help="PREFIX to be used in public channels before commands; a dot by default",
-                            metavar="PREFIX")
+        gen_opts.add_option("--cfg", "--config", dest = "config_file",
+                            help = "FILE (in YAML format) from which the configuration options shall be read",
+                            metavar = "FILE")
+        irc_opts.add_option("-n", "--nickname", dest = "nickname",
+                            help = "NICKNAME which will be used by the bot", metavar = "NICKNAME")
+        irc_opts.add_option("-s", "--server", dest = "server",
+                            help = "SERVER to which bot shall connect", metavar = "SERVER")
+        irc_opts.add_option("-p", "--port", dest = "port", type = "int",
+                            help = "Server's PORT to which bot shall connect; usually 6667, which is default",
+                            metavar = "PORT")
+        irc_opts.add_option("-c", "--chan", "--channel", dest = "channels", action = "append",
+                            help = "CHANNEL which the bot shall reside in. This option can be specified multiple times.",
+                            metavar = "CHANNEL")
+        cmd_opts.add_option("--prefix", dest = "cmd_prefix",
+                            help = "PREFIX to be used in public channels before commands; a dot by default",
+                            metavar = "PREFIX")
         
         # Add groups to parser
         op.add_option_group(gen_opts)
@@ -106,7 +106,7 @@ class Config(object):
             self.port = cfg.get("port", self.port)
             self.channels = cfg.get("channels", self.channels)
             self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
-	    self.disabled_plugins = cfg.get("disabled_plugins", self.disabled_plugins)
+            self.disabled_plugins = cfg.get("disabled_plugins", self.disabled_plugins)
             
         except Exception, e:
             
