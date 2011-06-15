@@ -14,6 +14,7 @@ import time
 from datetime import datetime
 from seejoo.ext import Plugin, plugin, get_storage_dir
 from seejoo import util
+from seejoo.util import irc
 
 
 @plugin
@@ -64,7 +65,7 @@ class Memos(Plugin):
         Called when bot "hears" a message.
         '''
         if not channel: return          # Only interested in channel messages
-        nick = util.get_nick(user)
+        nick = irc.get_nick(user)
         
         # Collect messages pertaining to this user
         messages = [] ; files = []
@@ -85,7 +86,7 @@ class Memos(Plugin):
             
             msg = "%s <%s> %s: %s" % (msg_time, message['from'], nick, message['message'])
             msgs.append(msg)
-        util.say(bot, channel, msgs)
+        irc.say(bot, channel, msgs)
         
         # Delete files
         for file in files:  os.unlink(file)
@@ -101,7 +102,7 @@ class Memos(Plugin):
         Called when user issues a command.
         '''
         if cmd != 'msg':    return
-        nick = util.get_nick(user)
+        nick = irc.get_nick(user)
         
         # Forbid sending messages to the bot itself
         if nick == bot.nickname:    return "I'm here, y'know." 

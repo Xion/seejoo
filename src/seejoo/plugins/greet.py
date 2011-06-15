@@ -10,6 +10,7 @@ import json
 import os.path
 from seejoo.ext import Plugin, plugin, get_storage_dir
 from seejoo import util
+from seejoo.util import irc
 
 
 @plugin
@@ -47,12 +48,12 @@ class Greetings(Plugin):
         Called when user joins a channel.
         '''
         # Retrieve the nick
-        nick = util.get_nick(user)
+        nick = irc.get_nick(user)
         if nick == bot.nickname:    return  # Only interested in others joining
         
         # Check if we have greeting and serve it
         greet = self.greets.get(nick)
-        if greet:   util.say(bot, channel, greet)
+        if greet:   irc.say(bot, channel, greet)
             
     def command(self, bot, user, cmd, args):
         '''
@@ -61,7 +62,7 @@ class Greetings(Plugin):
         if cmd != 'greet': return  # Only interested in this command
         
         # Remember the greeting
-        nick = util.get_nick(user)
+        nick = irc.get_nick(user)
         self.greets[nick] = str(args) if args else None
         self._save()
         
