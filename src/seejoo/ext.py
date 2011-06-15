@@ -7,16 +7,40 @@ Extensions module. Contains installed commands and plugins, as well as functions
 to register them. Shall be used by external modules to add extensions to seejoo.
 '''
 from seejoo.config import config
-import logging
+from seejoo.util.prefix_tree import PrefixTree
 import functools
-import types
+import logging
 import os
+import types
+
+
+RESERVED_COMMANDS = ['help']
+
+_commands = PrefixTree()
+_plugins = []
+
+
+def _get_command_doc(cmd_name):
+    '''
+    Retrieves a documentation for particular command.
+    '''
+    if not cmd_name:    return
+    
+    cmd_obj = _commands.get(cmd_name)
+    if not cmd_obj:     return
+    
+    # The command object is either a callable with command itself
+    # or a documentation string
+    if callable(cmd_obj):
+        try:    return cmd_obj.__doc__
+        except AttributeError:
+            return "<no description available>"
+    else:
+        return str(cmd_obj)
 
 
 ###############################################################################
 # Commands
-
-_commands = {}
 
 def register_command(name, cmd_object):
     '''
@@ -30,14 +54,18 @@ def register_command(name, cmd_object):
                        a string containing command's invocation parameters,
                        as well as keywords arguments such as 'user'.
     '''
+    global _commands
+    
     if not name or len(name) == 0:
         logging.error('Command name must not be empty.') ; return
+    if name in RESERVED_COMMANDS:
+        logging.error('"%s" is reserved command') ; return
     if name in _commands:
         logging.error('Duplicate command name "%s"', name) ; return
-    if not callable(cmd_object):
+    if cmd_object and not callable(cmd_object):
         logging.error('Command object "%s" is not callable.', str(cmd_object)) ; return
-        
-    _commands[name] = cmd_object
+    
+    _commands.add(name, cmd_object)
     
     
 def command(name):
@@ -57,8 +85,6 @@ def get_command(cmd):
 
 ###############################################################################
 # Plugins
-
-_plugins = []
 
 def register_plugin(plugin):
     '''
@@ -84,7 +110,20 @@ def register_plugin(plugin):
     if plugin_name in config.disabled_plugins:
         logging.debug("Plugin '%s' omitted due to disabled_plugins option", plugin_name)
         return
+    
+    # If plugin declares any commands, add them to command tree
+    if hasattr(plugin, 'coommands') and plugin.commands:
+        cmds = plugin.commands
+        if hasattr(cmds, 'items'):
+            # It's a dictionary or at least we assume so
+            for k, v in cmds.items():
+                register_command(k, v)
+        else:
+            # Assume it's a simple list of names
+            for cmd in cmds:
+                register_command(str(cmd), None)
         
+    global _plugins
     _plugins.append(plugin)
 
 

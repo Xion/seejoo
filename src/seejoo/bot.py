@@ -13,6 +13,7 @@ from twisted.words.protocols.irc import IRCClient
 import logging
 import os
 import re
+from seejoo.util.common import normalize_whitespace
 
 
 ###############################################################################
@@ -24,12 +25,25 @@ COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 class Bot(IRCClient):
     
     versionName = 'seejoo'
-    versionNum = '0.1'
+    versionNum = '0.6'
     versionEnv = os.name
     
     def __init__(self, *args, **kwargs):
         import_plugins()
         self.nickname = config.nickname
+        
+    def _handle_command(self, cmd, args):
+        '''
+        Handles a bot-level command. Returns its result.
+        '''
+        if cmd == 'help':
+            doc = ext._get_command_doc(args)
+            if doc:
+                doc = normalize_whitespace(doc)
+                doc = doc.strip()
+                return "%s -- %s" % (args, doc)
+            else:
+                return "No help found for '%s'" % args
     
     
     def signedOn(self):
@@ -90,24 +104,27 @@ class Bot(IRCClient):
             cmd = m.group('cmd')
             args = m.groupdict().get('args')
             
-            # Poll plugins for command result
-            resp = ext.notify(self, 'command', user = user, cmd = cmd, args = args)
-            if not resp:
-                
-                # Plugins didn't care so find a command and invoke it if present
-                cmd_object = ext.get_command(cmd)
-                if cmd_object:
-                    try:                    resp = cmd_object(args)
-                    except Exception, e:    resp = type(e).__name__ + ": " + str(e)
-                    resp = [resp] # Since we expect response to be iterable
-                elif is_priv:
-                    resp = ["Unknown command '%s'." % cmd]
+            # Check if its bot-level command
+            if cmd in ext.RESERVED_COMMANDS:
+                resp = self._handle_command(cmd, args)
+            else:
+                # Poll plugins for command result
+                resp = ext.notify(self, 'command', user = user, cmd = cmd, args = args)
+                if not resp:
+                    
+                    # Plugins didn't care so find a command and invoke it if present
+                    cmd_object = ext.get_command(cmd)
+                    if cmd_object:
+                        try:                    resp = cmd_object(args)
+                        except Exception, e:    resp = type(e).__name__ + ": " + str(e)
+                        resp = [resp] # Since we expect response to be iterable
+                    elif is_priv:
+                        resp = ["Unrecognized command '%s'." % cmd]
         
         # Serve the response
         if resp:
             logging.info("[RESPONSE] %s", resp)
             irc.say(self, user if is_priv else channel, resp)
-        
         
     def action(self, user, channel, message):
         '''

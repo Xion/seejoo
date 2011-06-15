@@ -12,7 +12,8 @@ import os
 
 
 @command('test')
-def ble(arg, **kwargs):
+def test(arg, **kwargs):
+    ''' Test command to see whether bot actually works. '''
     return "I've read %s" % arg if arg else "Works."
 
 @command('hi')
@@ -92,7 +93,7 @@ def evaluate_expression(exp):
     global eval_process, eval_pipe_parent, eval_pipe_child
     if not eval_process:
         eval_pipe_parent, eval_pipe_child = Pipe()
-        eval_process = Process(name="seejoo_eval", target=_eval_worker, args=(eval_pipe_child,))
+        eval_process = Process(name = "seejoo_eval", target = _eval_worker, args = (eval_pipe_child,))
         eval_process.daemon = True
         eval_process.start()
     

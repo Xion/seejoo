@@ -6,6 +6,7 @@ Created on 2010-12-05
 Commands used to access various web services such as Google or Wikipedia.
 '''
 from seejoo.ext import command
+from seejoo.util.common import normalize_whitespace
 from xml.etree import ElementTree
 import json
 import re
@@ -43,14 +44,6 @@ def strip_html_entities(data):
     '''
     p = re.compile(r'&[^;]+;')
     return p.sub('', data)
-
-def normalize_whitespace(data):
-    '''
-    Normalizes the whitespace in given string, replacing sequences of
-    whitespace with single space character.
-    '''
-    p = re.compile(r'\s+')
-    return p.sub(' ', data)
 
 def strip_html(data):
     '''
