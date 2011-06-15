@@ -106,6 +106,23 @@ class PrefixTreeNode(object):
                 
         return res
             
+    def __contains__(self, key):
+        ''' 'in' operator. '''
+        try:
+            self.__getitem__(key)
+            return True
+        except KeyError:
+            return False
+    
+    def __getitem__(self, key):
+        ''' Indexing operator. '''
+        node, tree_path = self._traverse(key)
+        if tree_path == key:    return node.data
+        else:                   raise KeyError, key
         
     def __str__(self):
-        return str(self.__dict__)
+        return "%s --> (%s)" % (self.data, ",".join(self.children.keys()))
+    
+
+# Tree is just its root node
+PrefixTree = PrefixTreeNode
