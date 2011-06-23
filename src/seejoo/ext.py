@@ -14,7 +14,7 @@ import os
 import types
 
 
-RESERVED_COMMANDS = ['help']
+BOT_COMMANDS = ['help']
 
 _commands = PrefixTree()
 _plugins = []
@@ -58,10 +58,8 @@ def register_command(name, cmd_object):
     
     if not name or len(name) == 0:
         logging.error('Command name must not be empty.') ; return
-    if name in RESERVED_COMMANDS:
-        logging.error('"%s" is reserved command') ; return
     if name in _commands:
-        logging.error('Duplicate command name "%s"', name) ; return
+        logging.error('Duplicate or reserved command name "%s"', name) ; return
     if cmd_object and not callable(cmd_object):
         logging.error('Command object "%s" is not callable.', str(cmd_object)) ; return
     

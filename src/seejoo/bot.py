@@ -14,6 +14,7 @@ import logging
 import os
 import re
 from seejoo.util.common import normalize_whitespace
+import functools
 
 
 ###############################################################################
@@ -25,12 +26,17 @@ COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 class Bot(IRCClient):
     
     versionName = 'seejoo'
-    versionNum = '0.6'
+    versionNum = '0.7'
     versionEnv = os.name
     
     def __init__(self, *args, **kwargs):
-        import_plugins()
+        ''' Initializer. '''
         self.nickname = config.nickname
+        
+        for cmd in ext.BOT_COMMANDS:
+            ext.register_command(cmd, functools.partial(self._handle_command, cmd))
+            
+        import_plugins()
         
     def _handle_command(self, cmd, args):
         '''
@@ -64,7 +70,7 @@ class Bot(IRCClient):
         # Log and notify plugins
         logging.debug("[SERVER] %s running %s; usermodes=%s, channelmodes=%s", servername, version, umodes, cmodes)
         ext.notify(self, 'connect', host = servername)
-                
+
         
     def privmsg(self, user, channel, message):
         '''
@@ -95,36 +101,61 @@ class Bot(IRCClient):
         # Log message/command
         logging.info ("[%s] <%s/%s> %s", "COMMAND" if is_command else "MESSAGE",
                        user, channel if not is_priv else '__priv__', message)
-        if not is_command: return
-                
-        # Split command to prefix and argument line
-        resp = None
-        m = COMMAND_RE.match(message)
-        if m:
-            cmd = m.group('cmd')
-            args = m.groupdict().get('args')
+        if is_command:
+            resp = self._command(user, message)
+            if resp:
+                logging.info("[RESPONSE] %s", resp)
+                irc.say(self, user if is_priv else channel, resp)
             
-            # Check if its bot-level command
-            if cmd in ext.RESERVED_COMMANDS:
-                resp = self._handle_command(cmd, args)
-            else:
-                # Poll plugins for command result
-                resp = ext.notify(self, 'command', user = user, cmd = cmd, args = args)
-                if not resp:
-                    
-                    # Plugins didn't care so find a command and invoke it if present
-                    cmd_object = ext.get_command(cmd)
-                    if cmd_object:
-                        try:                    resp = cmd_object(args)
-                        except Exception, e:    resp = type(e).__name__ + ": " + str(e)
-                        resp = [resp] # Since we expect response to be iterable
-                    elif is_priv:
-                        resp = ["Unrecognized command '%s'." % cmd]
+    def _command(self, user, command):
+        '''
+        Internal function that handles the processing of commands. 
+        Returns the result of processing as a text response to be "said" by the bot,
+        or None if it wasn't actually a command.
+        '''
+        m = COMMAND_RE.match(command)
+        if not m:   return
         
-        # Serve the response
-        if resp:
-            logging.info("[RESPONSE] %s", resp)
-            irc.say(self, user if is_priv else channel, resp)
+        cmd = m.group('cmd')
+        args = m.groupdict().get('args')
+        
+        # Poll plugins for command result
+        resp = ext.notify(self, 'command', user = user, cmd = cmd, args = args)
+        if resp:    return resp
+            
+        # Plugins didn't care so find a command and invoke it if present
+        cmd_object = ext.get_command(cmd)
+        if cmd_object:
+            try:                    resp = cmd_object(args)
+            except Exception, e:    resp = type(e).__name__ + ": " + str(e)
+            resp = [resp] # Since we expect response to be iterable
+        else:
+            # Suggest other variants
+            suggestions = set()
+            for i in range(1, len(cmd) + 1):
+                completions = ext._commands.search(cmd[:i]).keys()
+                suggestions = suggestions.union(set(completions))
+                
+            if len(suggestions) == 0:
+                resp = ["Unrecognized command '%s'." % cmd]
+            else:
+                # If there are too many suggestions, filter them out
+                MAX_SUGGESTIONS = 5
+                suggestions = filter(None, suggestions)
+                more = None
+                if len(suggestions) > MAX_SUGGESTIONS:
+                    more = len(suggestions) - MAX_SUGGESTIONS
+                    suggestions = suggestions[:MAX_SUGGESTIONS]
+                
+                # Format them
+                suggestions = map(lambda s: "." + s, suggestions)
+                suggestions = str.join(" ", suggestions)
+                if more:    suggestions += " ... (%s more)" % more
+                
+                resp = ["Did you mean one of: %s?" % suggestions]
+                    
+        return resp
+        
         
     def action(self, user, channel, message):
         '''
