@@ -45,6 +45,8 @@ class Bot(IRCClient):
         if cmd == 'help':
             doc = ext._get_command_doc(args)
             if doc:
+                if config.cmd_prefix:
+                    args = config.cmd_prefix + args
                 doc = normalize_whitespace(doc)
                 doc = doc.strip()
                 return "%s -- %s" % (args, doc)
@@ -148,7 +150,8 @@ class Bot(IRCClient):
                     suggestions = suggestions[:MAX_SUGGESTIONS]
                 
                 # Format them
-                suggestions = map(lambda s: "." + s, suggestions)
+                if config.cmd_prefix:
+                    suggestions = map(lambda s: config.cmd_prefix + s, suggestions)
                 suggestions = str.join(" ", suggestions)
                 if more:    suggestions += " ... (%s more)" % more
                 
