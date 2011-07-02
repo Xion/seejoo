@@ -11,15 +11,6 @@ import math
 import os
 
 
-@command('test')
-def test(arg, **kwargs):
-    ''' Test command to see whether bot actually works. '''
-    return "I've read %s" % arg if arg else "Works."
-
-@command('hi')
-def hello(arg, **kwargs):
-    return "Hello."
-
 
 ###############################################################################
 # Evaluation of mathematical expressions
