@@ -43,6 +43,10 @@ class Bot(IRCClient):
         Handles a bot-level command. Returns its result.
         '''
         if cmd == 'help':
+            
+            if not args:
+                return "No help found."
+            
             doc = ext._get_command_doc(args)
             if doc:
                 if config.cmd_prefix:
@@ -132,7 +136,13 @@ class Bot(IRCClient):
             except Exception, e:    resp = type(e).__name__ + ": " + str(e)
             resp = [resp] # Since we expect response to be iterable
         else:
-            # Suggest other variants
+            # Check whether the command can be unambiguously resolved
+            completions = ext._commands.search(cmd).keys()
+            if len(completions) == 1:
+                command = "%s %s" % (completions[0], args)
+                return self._command(user, command)
+            
+            # Otherwise, suggest other variants
             suggestions = set()
             for i in range(1, len(cmd) + 1):
                 completions = ext._commands.search(cmd[:i]).keys()
@@ -155,7 +165,7 @@ class Bot(IRCClient):
                 suggestions = str.join(" ", suggestions)
                 if more:    suggestions += " ... (%s more)" % more
                 
-                resp = ["Did you mean one of: %s?" % suggestions]
+                resp = ["Did you mean one of: %s ?" % suggestions]
                     
         return resp
         
