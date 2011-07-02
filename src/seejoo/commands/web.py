@@ -63,6 +63,9 @@ def get_website_title(url):
     '''
     Retrieves the title of given website and returns it.
     '''
+    if not url or len(str(url).strip()) == 0:
+        return "No URL supplied."
+    
     # Download the page
     site = download(url)     
     if not site:    return "(Could not retrieve page)"
