@@ -64,6 +64,7 @@ def register_command(name, cmd_object):
         logging.error('Command object "%s" is not callable.', str(cmd_object)) ; return
     
     _commands.add(name, cmd_object)
+    return cmd_object   # Otherwise the command functions would not be callable by their names
     
     
 def command(name):

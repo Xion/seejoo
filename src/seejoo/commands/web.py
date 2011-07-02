@@ -205,8 +205,8 @@ def get_definition_from_wiki(wiki, chars):
     
     # Strip unnecessary markup
     text = re.sub(r"\{\{.*?\}\}", "", text)   # Other remaining markup -- requires refinement to support {{convert...}}
-    text = re.sub(r"\[\[(.[^\]]*?\|)?(?P<link>.*?)\]\]", lambda m: m.group("link"), text)        # Links
-    text = re.sub(r"\'{3}(.*?)\'{3}", lambda m: '"' + m.group(1) + '"', text)                    # Quotes
+    text = re.sub(r"\[\[(.[^\]]*?\|)?(?P<link>.*?)\]\]", lambda m: m.group("link"), text)     # Links
+    text = re.sub(r"\'{3}(.*?)\'{3}", lambda m: '"%s"' % m.group(1), text)                    # Quotes
     
     text = re.sub(r"\s+\(\W*?\)", "", text)
 
@@ -227,6 +227,12 @@ def wikipedia_definition(term):
     
     wiki_def = get_definition_from_wiki(page, 200)
     if not wiki_def:    return "Could found the definition in Wikipedia."
+    
+    # Handle Wikipedia redirects
+    if wiki_def.startswith("#REDIRECT"):
+        first_line = wiki_def[:wiki_def.find('\n')]
+        _, target = first_line.split(None, 1)
+        return wikipedia_definition(target)
     
     wiki_url = "http://en.wikipedia.org/wiki/" + urllib2.quote(term)
     return "%s -- from: %s" % (wiki_def, wiki_url)
