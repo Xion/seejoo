@@ -105,6 +105,19 @@ def _google_websearch(query):
     url = "https://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=%s" % urllib2.quote(query)
     response = download(url)
     return json.loads(response)
+
+def _get_google_websearch_result_count(json_resp):
+    '''
+    Extracts number of results from Google Web Search JSON response.
+    '''
+    if not json_resp:   return
+    try:    
+        result_count = int(json_resp['responseData']['cursor']['estimatedResultCount'])
+    except KeyError:
+        return
+    
+    return result_count
+    
     
 @command('g')
 def google_search(query):
@@ -117,7 +130,7 @@ def google_search(query):
     
     # Parse the response and return first few results
     results = json_resp['responseData']['results'][:MAX_QUERY_RESULTS]
-    result_count = int(json_resp['responseData']['cursor']['estimatedResultCount']) 
+    result_count = _get_google_websearch_result_count(json_resp) 
     
     # Format resulting string
     res = [r['titleNoFormatting'][:40] + " - " + r['unescapedUrl'] for r in results]
@@ -133,8 +146,29 @@ def google_search_count(query):
     Performs a search using Google search engine and returns only the estimated number of results.
     '''
     json_resp = _google_websearch(query)
-    result_count = int(json_resp['responseData']['cursor']['estimatedResultCount'])
+    result_count = _get_google_websearch_result_count(json_resp)
     return "`%s`: about %s results" % (query, result_count)
+
+@command('gf')
+def googlefight(queries):
+    '''
+    Performs a Googlefight, querying each term and displaying results.
+    '''
+    if not queries: return "No queries provided."    
+    queries = map(str.strip, queries.split(";"))
+    
+    # Query for each term
+    results = []
+    for query in queries:
+        json_resp = _google_websearch(query)
+        count = _get_google_websearch_result_count(json_resp)
+        results.append((query, count or 0))
+    
+    # Format results
+    results = sorted(results, key = lambda r: r[1], reverse = True)
+    results_str = ["%i. %s (%s)" % (place, r[0], r[1]) for place, r in enumerate(results, 1)]
+    
+    return " ".join(results_str)
 
 
 ###############################################################################
