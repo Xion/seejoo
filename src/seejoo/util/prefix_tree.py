@@ -99,10 +99,16 @@ class PrefixTreeNode(object):
         stack = [(path, node)]
         while len(stack) > 0:
             curr_prefix, curr_node = stack.pop()
-            res[curr_prefix] = curr_node
-            
-            for child_label, child_node in curr_node.children.items():
-                stack.append((curr_prefix + child_label, child_node))
+            rest = prefix[len(curr_prefix):]
+            if rest:
+                # Keep looking: try child nodes,
+                # but only those that go along the path of the search prefix
+                for child_label, child_node in curr_node.children.items():
+                    if child_label.startswith(rest) or rest.startswith(child_label):
+                        stack.append((curr_prefix + child_label, child_node))
+            else:
+                # This path is exhausted so we reached at some viable search result
+                res[curr_prefix] = curr_node
                 
         return res
             
