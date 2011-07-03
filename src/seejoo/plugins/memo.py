@@ -13,7 +13,6 @@ import os
 import time
 from datetime import datetime
 from seejoo.ext import Plugin, plugin, get_storage_dir
-from seejoo import util
 from seejoo.util import irc
 
 

@@ -103,13 +103,6 @@ def register_plugin(plugin):
         logging.error('Plugin object "%s" is not callable.', str(plugin))
         return
 
-    # Check if plugin is listed in the disabled_plugins option
-    try:			plugin_name = plugin.__name__
-    except AttributeError:	plugin_name = plugin.__class__.__name__
-    if plugin_name in config.disabled_plugins:
-        logging.debug("Plugin '%s' omitted due to disabled_plugins option", plugin_name)
-        return
-    
     # If plugin declares any commands, add them to command tree
     if hasattr(plugin, 'coommands') and plugin.commands:
         cmds = plugin.commands

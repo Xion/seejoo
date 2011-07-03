@@ -153,6 +153,7 @@ def google_search_count(query):
 def googlefight(queries):
     '''
     Performs a Googlefight, querying each term and displaying results.
+    Queries shall be separated with semicolon.
     '''
     if not queries: return "No queries provided."    
     queries = map(str.strip, queries.split(";"))

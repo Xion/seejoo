@@ -7,7 +7,6 @@ Module containing the Bot class, derived from IRCClient.
 '''
 from seejoo import ext, commands #@UnusedImport
 from seejoo.util import irc
-from seejoo.plugins import import_plugins
 from seejoo.config import config
 from twisted.words.protocols.irc import IRCClient
 import logging
@@ -36,7 +35,21 @@ class Bot(IRCClient):
         for cmd in ext.BOT_COMMANDS:
             ext.register_command(cmd, functools.partial(self._handle_command, cmd))
             
-        import_plugins()
+        self._import_plugins()
+            
+    def _import_plugins(self):
+        '''
+        Imports plugins listed in config.plugins.
+        '''
+        if not config.plugins:
+            logging.info("No plugins to load.")
+            return
+        
+        for p in config.plugins:
+            try:
+                __import__(p, globals())
+            except Exception, e:
+                logging.warning("Could not import plugin %s (%s: %s)", p, type(e), e)
         
     def _handle_command(self, cmd, args):
         '''

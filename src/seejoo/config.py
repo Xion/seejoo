@@ -34,7 +34,7 @@ class Config(object):
         
         # Command options
         self.cmd_prefix = PUBLIC_PREFIX
-        self.disabled_plugins = DISABLED_PLUGINS
+        self.plugins = PLUGINS
         
     
     def parse_args(self):
@@ -106,7 +106,7 @@ class Config(object):
             self.port = cfg.get("port", self.port)
             self.channels = cfg.get("channels", self.channels)
             self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
-            self.disabled_plugins = cfg.get("disabled_plugins", self.disabled_plugins)
+            self.plugins = cfg.get("plugins", self.plugins)
             
         except Exception, e:
             
@@ -130,7 +130,7 @@ CHANNELS = ['#cipra']
 PUBLIC_PREFIX = '.'
 
 # Plugin options
-DISABLED_PLUGINS = []
+PLUGINS = ['seejoo.plugins.memo']
 
 
 ###############################################################################
