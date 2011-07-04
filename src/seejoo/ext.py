@@ -64,8 +64,6 @@ def register_command(name, cmd_object):
         logging.error('Command name must not be empty.') ; return
     if name in _commands:
         logging.error('Duplicate or reserved command name "%s"', name) ; return
-    if cmd_object and not callable(cmd_object):
-        logging.error('Command object "%s" is not callable.', str(cmd_object)) ; return
     
     _commands.add(name, cmd_object)
     return cmd_object   # Otherwise the command functions would not be callable by their names

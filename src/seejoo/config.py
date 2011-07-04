@@ -130,7 +130,7 @@ CHANNELS = ['#cipra']
 PUBLIC_PREFIX = '.'
 
 # Plugin options
-PLUGINS = ['seejoo.plugins.memo']
+PLUGINS = ['seejoo.plugins.memo', 'seejoo.plugins.urlspy']
 
 
 ###############################################################################

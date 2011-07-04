@@ -12,7 +12,7 @@ from twisted.words.protocols.irc import IRCClient
 import logging
 import os
 import re
-from seejoo.util.common import normalize_whitespace
+from seejoo.util.strings import normalize_whitespace
 import functools
 
 
@@ -154,9 +154,12 @@ class Bot(IRCClient):
         # Plugins didn't care so find a command and invoke it if present
         cmd_object = ext.get_command(cmd)
         if cmd_object:
-            try:                    resp = cmd_object(args)
-            except Exception, e:    resp = type(e).__name__ + ": " + str(e)
-            resp = [resp] # Since we expect response to be iterable
+            if callable(cmd_object):    
+                try:                    resp = cmd_object(args)
+                except Exception, e:    resp = type(e).__name__ + ": " + str(e)
+                resp = [resp] # Since we expect response to be iterable
+            else:
+                return ["Invalid command '%s'; likely indicates faulty plugin" % cmd]
         else:
             # Check whether the command can be unambiguously resolved
             completions = ext._commands.search(cmd).keys()
