@@ -5,12 +5,13 @@ related to URLs spoken by those present on IRC channel.
 from seejoo.ext import plugin, Plugin
 from seejoo.util.common import download
 import re
+from seejoo.util.strings import normalize_whitespace
 
 
 # Not entirely perfect regex but hey, it works :)
 URL_RE = re.compile(r"((https?:\/\/)|(www\.))(\w+\.)*\w+(\/.*)*", re.IGNORECASE)
 
-TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*?)\<\/title\s*\>', re.IGNORECASE)
+TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*?)\<\/\s*title\s*\>', re.IGNORECASE | re.DOTALL)
 
 
 @plugin
@@ -18,7 +19,7 @@ class URLSpy(Plugin):
     '''
     URLSpy plugin, providing various URL-related commands.
     '''
-    commands = ['t']
+    commands = { 't': 'Get a title of website with given or most recently said URL' }
     
     def __init__(self):
         ''' Initialization. '''
@@ -52,4 +53,5 @@ class URLSpy(Plugin):
             # Find the title and return it
             m = TITLE_RE.search(site)
             if not m:   return "(Untitled)"
-            return m.group('title')
+            title = m.group('title')
+            return normalize_whitespace(title)
