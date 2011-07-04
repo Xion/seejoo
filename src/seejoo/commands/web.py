@@ -6,7 +6,8 @@ Created on 2010-12-05
 Commands used to access various web services such as Google or Wikipedia.
 '''
 from seejoo.ext import command
-from seejoo.util.common import normalize_whitespace
+from seejoo.util.common import download
+from seejoo.util.strings import strip_html
 from xml.etree import ElementTree
 import json
 import re
@@ -16,43 +17,6 @@ import urllib2
 MAX_QUERY_RESULTS = 3
 
 TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*?)\<\/title\s*\>', re.IGNORECASE)
-
-
-##############################################################################
-# Utility functions
-
-def download(url):
-    '''
-    Downloads content of given URL.
-    '''
-    try:
-        req = urllib2.Request(url, headers = { 'User-Agent': 'seejoo'})
-        return urllib2.urlopen(req).read()
-    except ValueError:  return download("http://" + url)
-    except IOError:     return None
-
-def strip_html_tags(data):
-    '''
-    Strips any HTML-like tags from given data.
-    '''
-    p = re.compile(r'<.*?>')
-    return p.sub('', data)
-
-def strip_html_entities(data):
-    '''
-    Strips any HTML entity references from given data.
-    '''
-    p = re.compile(r'&[^;]+;')
-    return p.sub('', data)
-
-def strip_html(data):
-    '''
-    Strips HTML tags and stuff from given text, making it plain text.
-    '''
-    data = strip_html_tags(data)
-    data = strip_html_entities(data)
-    data = normalize_whitespace(data)
-    return data
 
 
 ##############################################################################

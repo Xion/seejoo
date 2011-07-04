@@ -5,13 +5,15 @@ Created on 2011-06-15
 
 Contains utility functions that don't fint anywhere else.
 '''
-import re
+import urllib2
 
 
-def normalize_whitespace(string):
+def download(url):
     '''
-    Normalizes the whitespace in given string, replacing sequences of
-    whitespace with single space character.
+    Downloads content of given URL.
     '''
-    p = re.compile(r'\s+')
-    return p.sub(' ', string)
+    try:
+        req = urllib2.Request(url, headers = { 'User-Agent': 'seejoo'})
+        return urllib2.urlopen(req).read()
+    except ValueError:  return download("http://" + url)
+    except IOError:     return None
