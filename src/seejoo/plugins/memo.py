@@ -21,6 +21,8 @@ class Memos(Plugin):
     '''
     Memo plugin. Allows users to leave messages to be delivered to others.
     '''
+    commands = { 'msg': 'Leave a message for particular user, e.g.: #cmd# some_one You owe me $10!' }
+    
     def __init__(self):
         '''
         Constructor

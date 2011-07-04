@@ -32,11 +32,15 @@ def _get_command_doc(cmd_name):
     # The command object is either a callable with command itself
     # or a documentation string
     if callable(cmd_obj):
-        try:    return cmd_obj.__doc__
+        try:    doc = cmd_obj.__doc__
         except AttributeError:
             return "<no description available>"
     else:
-        return str(cmd_obj)
+        doc = str(cmd_obj)
+        
+    # Perform substitition of #cmd#
+    doc = doc.replace("#cmd#", config.cmd_prefix + cmd_name)
+    return doc
 
 
 ###############################################################################
@@ -104,7 +108,7 @@ def register_plugin(plugin):
         return
 
     # If plugin declares any commands, add them to command tree
-    if hasattr(plugin, 'coommands') and plugin.commands:
+    if hasattr(plugin, 'commands') and plugin.commands:
         cmds = plugin.commands
         if hasattr(cmds, 'items'):
             # It's a dictionary or at least we assume so

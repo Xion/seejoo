@@ -17,6 +17,8 @@ class Greetings(Plugin):
     '''
     Greetings plugin class.
     '''
+    commands = { 'greet': 'Sets a greeting that bot will say when you enter the channel' }
+    
     def __init__(self):
         '''
         Constructor.
