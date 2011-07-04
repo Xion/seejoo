@@ -9,7 +9,6 @@ and have them used by bot when they enter the channel.
 import json
 import os.path
 from seejoo.ext import Plugin, plugin, get_storage_dir
-from seejoo import util
 from seejoo.util import irc
 
 
