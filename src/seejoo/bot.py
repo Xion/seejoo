@@ -25,7 +25,7 @@ COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 class Bot(IRCClient):
     
     versionName = 'seejoo'
-    versionNum = '0.7'
+    versionNum = '0.8'
     versionEnv = os.name
     
     def __init__(self, *args, **kwargs):
@@ -40,16 +40,25 @@ class Bot(IRCClient):
     def _import_plugins(self):
         '''
         Imports plugins listed in config.plugins.
+        @return Number of plugins imported
         '''
         if not config.plugins:
-            logging.info("No plugins to load.")
-            return
+            logging.info("No plugins to import.")
+            return 0
         
+        imported = 0
         for p in config.plugins:
             try:
-                __import__(p, globals())
+                __import__(p, globals(), level = 0)
+                logging.debug("Plugin '%s' imported successfully.")
+                imported += 1
+            except ImportError:
+                logging.warning("Plugin '%s' could not be found.")
             except Exception, e:
-                logging.warning("Could not import plugin %s (%s: %s)", p, type(e), e)
+                logging.warning("Could not import plugin '%s' (%s: %s).", p, type(e).__name__, e)
+        
+        logging.info("Imported %s plugin(s)", imported)        
+        return imported
         
     def _handle_command(self, cmd, args):
         '''
