@@ -16,28 +16,9 @@ import urllib2
 
 MAX_QUERY_RESULTS = 3
 
-TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*?)\<\/title\s*\>', re.IGNORECASE)
-
 
 ##############################################################################
 # General commands
-
-@command('t')
-def get_website_title(url):
-    '''
-    Retrieves the title of given website and returns it.
-    '''
-    if not url or len(str(url).strip()) == 0:
-        return "No URL supplied."
-    
-    # Download the page
-    site = download(url)     
-    if not site:    return "(Could not retrieve page)"
-    
-    # Find the title and return it
-    m = TITLE_RE.search(site)
-    if not m:   return "(Untitled)"
-    return m.group('title')
 
 @command('rss')
 def get_recent_rss_items(url):
