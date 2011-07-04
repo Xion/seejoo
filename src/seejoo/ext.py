@@ -14,7 +14,7 @@ import os
 import types
 
 
-BOT_COMMANDS = ['help']
+BOT_COMMANDS = { 'help': 'Displays help about particular command' }
 
 _commands = PrefixTree()
 _plugins = []
@@ -108,9 +108,9 @@ def register_plugin(plugin):
     # If plugin declares any commands, add them to command tree
     if hasattr(plugin, 'commands') and plugin.commands:
         cmds = plugin.commands
-        if hasattr(cmds, 'items'):
+        if hasattr(cmds, 'iteritems'):
             # It's a dictionary or at least we assume so
-            for k, v in cmds.items():
+            for k, v in cmds.iteritems():
                 register_command(k, v)
         else:
             # Assume it's a simple list of names

@@ -32,8 +32,10 @@ class Bot(IRCClient):
         ''' Initializer. '''
         self.nickname = config.nickname
         
-        for cmd in ext.BOT_COMMANDS:
-            ext.register_command(cmd, functools.partial(self._handle_command, cmd))
+        for cmd, doc in ext.BOT_COMMANDS.iteritems():
+            func = functools.partial(self._handle_command, cmd)
+            func.__doc__ = doc
+            ext.register_command(cmd, func)
             
         self._import_plugins()
             
