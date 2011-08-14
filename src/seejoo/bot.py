@@ -52,10 +52,10 @@ class Bot(IRCClient):
         for p in config.plugins:
             try:
                 __import__(p, globals(), level = 0)
-                logging.debug("Plugin '%s' imported successfully.")
+                logging.debug("Plugin '%s' imported successfully.", p)
                 imported += 1
             except ImportError:
-                logging.warning("Plugin '%s' could not be found.")
+                logging.warning("Plugin '%s' could not be found.", p)
             except Exception, e:
                 logging.warning("Could not import plugin '%s' (%s: %s).", p, type(e).__name__, e)
         
