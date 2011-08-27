@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 Created on 05-12-2010
 
@@ -44,7 +46,7 @@ def start():
         import yaml                                                 # @UnusedImport
         if os.path.exists(CONFIG_FILE): config.load_from_file(CONFIG_FILE)
     except ImportError:
-        pass
+        logging.warning("No yaml library found -- will not parse configuration files")
     
     # Read the configuration from command line
     config.parse_args()
