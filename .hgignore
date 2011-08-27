@@ -5,3 +5,9 @@ syntax: glob
 .pydevproject
 syntax: glob
 *.pyc
+syntax: glob
+dist
+syntax: glob
+*.egg-info
+syntax: glob
+seejoo.log

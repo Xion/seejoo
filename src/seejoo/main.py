@@ -23,6 +23,8 @@ class BotFactory(ReconnectingClientFactory):
 # Starting point
 
 CONFIG_FILE = "config.yaml"
+LOG_FILE = 'seejoo.log'
+
 def start():
     '''
     Startup function.
@@ -34,7 +36,7 @@ def start():
     
     # Set up logging
     fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    handler = logging.FileHandler(data_dir + "seejoo.log")
+    handler = logging.FileHandler(data_dir + LOG_FILE)
     handler.setFormatter(fmt)
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
