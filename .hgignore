@@ -11,3 +11,5 @@ syntax: glob
 *.egg-info
 syntax: glob
 seejoo.log
+syntax: glob
+build

@@ -6,14 +6,14 @@ Created on 05-12-2010
 Module containing the Bot class, derived from IRCClient.
 '''
 from seejoo import ext, commands #@UnusedImport
-from seejoo.util import irc
 from seejoo.config import config
+from seejoo.util import irc
+from seejoo.util.strings import normalize_whitespace
 from twisted.words.protocols.irc import IRCClient
+import functools
 import logging
 import os
 import re
-from seejoo.util.strings import normalize_whitespace
-import functools
 
 
 ###############################################################################
@@ -25,7 +25,7 @@ COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 class Bot(IRCClient):
     
     versionName = 'seejoo'
-    versionNum = '0.8'
+    versionNum = '1.0'
     versionEnv = os.name
     
     def __init__(self, *args, **kwargs):

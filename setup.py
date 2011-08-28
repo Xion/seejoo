@@ -8,10 +8,11 @@ Created on 2011-08-27
 Setup script for the seejoo project.
 '''
 from setuptools import setup, find_packages
+from seejoo.bot import Bot
 
 
-setup(name = 'seejoo',
-      version = '1.0',
+setup(name = Bot.versionName,
+      version = Bot.versionNum,
       description = 'IRC bot for geek-centered channels',
       author = 'Karol Kuczmarski',
       author_email = 'karol.kuczmarski@gmail.com',
@@ -32,8 +33,9 @@ setup(name = 'seejoo',
                      'Topic :: Utilities',
                      ],
       
-      install_requires = ['twisted'],
+      requires = ['twisted'],
+      
       packages = find_packages('./src', exclude = ('test',)),
-      package_dir = { 'seejoo': 'src/seejoo' },
+      package_dir = { '': 'src' },
       scripts = ['src/seejoo/main.py'],
 )
