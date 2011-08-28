@@ -15,8 +15,8 @@ import logging
 
 class Config(object):
     '''
-    Configuration class. Stores bot's settings, read from command line,
-    a YAML configuration file
+    Configuration class. Stores bot's settings, read from command line
+    and/or YAML configuration file
     '''
     def __init__(self):
         self.set_defaults()

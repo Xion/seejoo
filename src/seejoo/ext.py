@@ -106,8 +106,8 @@ def register_plugin(plugin):
         return
 
     # If plugin declares any commands, add them to command tree
-    if hasattr(plugin, 'commands') and plugin.commands:
-        cmds = plugin.commands
+    cmds = getattr(plugin, 'commands', None)
+    if cmds:
         if hasattr(cmds, 'iteritems'):
             # It's a dictionary or at least we assume so
             for k, v in cmds.iteritems():

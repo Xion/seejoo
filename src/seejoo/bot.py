@@ -166,7 +166,8 @@ class Bot(IRCClient):
             # Check whether the command can be unambiguously resolved
             completions = ext._commands.search(cmd).keys()
             if len(completions) == 1:
-                command = "%s %s" % (completions[0], args)
+                command = completions[0]
+                if args:    command += " %s" % args
                 return self._command(user, command)
             
             # Otherwise, suggest other variants
