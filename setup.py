@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 '''
 Created on 2011-08-27
 
@@ -34,8 +33,11 @@ setup(name = Bot.versionName,
                      ],
       
       requires = ['twisted'],
+      extras_require = {
+                        'config_file': ['yaml'],
+                        },
       
-      packages = find_packages('./src', exclude = ('test',)),
+      packages = find_packages('./src', exclude = ['test']),
       package_dir = { '': 'src' },
       scripts = ['src/seejoo/main.py'],
 )
