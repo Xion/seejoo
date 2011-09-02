@@ -37,6 +37,5 @@ setup(name = Bot.versionName,
                         'config_file': ['yaml'],
                         },
       
-      packages = find_packages('./src', exclude = ['test']),
-      package_dir = { '': 'src' },
+      packages = find_packages(exclude = ['tests']),
 )
