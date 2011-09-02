@@ -13,6 +13,7 @@ from seejoo.bot import Bot
 setup(name = Bot.versionName,
       version = Bot.versionNum,
       description = 'Extensible IRC bot for geek-centered channels',
+      long_description = open("README.markdown").read(),
       author = 'Karol "Xion" Kuczmarski',
       author_email = 'karol.kuczmarski@gmail.com',
       url = 'http://github.com/Xion/seejoo',
@@ -32,10 +33,7 @@ setup(name = Bot.versionName,
                      'Topic :: Utilities',
                      ],
       
-      requires = ['twisted'],
-      extras_require = {
-                        'config_file': ['yaml'],
-                        },
+      requires = ['twisted', 'pyyaml'],
       
       packages = find_packages(exclude = ['tests']),
       scripts = ['seejoo.py'],
