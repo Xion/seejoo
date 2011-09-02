@@ -1,3 +1,5 @@
+For list of commands offered by the bot, see [help page](https://github.com/Xion/seejoo/wiki/Help).
+
 seejoo
 =
 _seejoo_ is an IRC utility bot coded in Python and built upon the Twisted networking library.
