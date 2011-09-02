@@ -12,10 +12,10 @@ from seejoo.bot import Bot
 
 setup(name = Bot.versionName,
       version = Bot.versionNum,
-      description = 'IRC bot for geek-centered channels',
-      author = 'Karol Kuczmarski',
+      description = 'Extensible IRC bot for geek-centered channels',
+      author = 'Karol "Xion" Kuczmarski',
       author_email = 'karol.kuczmarski@gmail.com',
-      url = 'http://www.bitbucket.org/Xion/seejoo',
+      url = 'http://github.com/Xion/seejoo',
       license = 'Simplified BSD',
       classifiers = [
                      'Development Status :: 4 - Beta',
@@ -39,5 +39,4 @@ setup(name = Bot.versionName,
       
       packages = find_packages('./src', exclude = ['test']),
       package_dir = { '': 'src' },
-      scripts = ['src/seejoo/main.py'],
 )
