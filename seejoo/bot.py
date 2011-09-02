@@ -9,6 +9,8 @@ from seejoo import ext, commands #@UnusedImport
 from seejoo.config import config
 from seejoo.util import irc
 from seejoo.util.strings import normalize_whitespace
+from twisted.internet import reactor
+from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.words.protocols.irc import IRCClient
 import functools
 import logging
@@ -314,3 +316,17 @@ class Bot(IRCClient):
         # Notify plugins and log event
         logging.debug("[QUIT] %s (%s)", user, message)
         ext.notify(self, 'quit', user = user, message = message)
+
+
+###############################################################################
+# Runner
+
+class BotFactory(ReconnectingClientFactory): 
+    protocol = Bot
+
+def run():
+    '''
+    Runs the bot, using configuration specified in config module.
+    '''
+    reactor.connectTCP(config.server, config.port, BotFactory())    # @UndefinedVariable
+    reactor.run()                                                   # @UndefinedVariable

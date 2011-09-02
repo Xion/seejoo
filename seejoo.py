@@ -5,27 +5,18 @@ Created on 05-12-2010
 
 @author: Xion
 
-Main module, containing the startup code for IRC bot.
+Startup script for the bot.
 '''
 from seejoo import bot
 from seejoo.config import config
-from twisted.internet import reactor
-from twisted.internet.protocol import ReconnectingClientFactory
 import os
 import logging
 
 
-class BotFactory(ReconnectingClientFactory): 
-    protocol = bot.Bot
-
-
-###############################################################################
-# Starting point
-
 CONFIG_FILE = "config.yaml"
 LOG_FILE = 'seejoo.log'
 
-def start():
+def main():
     '''
     Startup function.
     '''
@@ -54,9 +45,8 @@ def start():
     config.parse_args()
     
     # Start the bot
-    reactor.connectTCP(config.server, config.port, BotFactory())    # @UndefinedVariable
-    reactor.run()                                                   # @UndefinedVariable
+    bot.run()
     
     
 if __name__ == '__main__':
-    start()
+    main()

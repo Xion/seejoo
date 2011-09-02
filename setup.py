@@ -38,4 +38,5 @@ setup(name = Bot.versionName,
                         },
       
       packages = find_packages(exclude = ['tests']),
+      scripts = ['seejoo.py'],
 )
