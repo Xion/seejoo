@@ -20,8 +20,7 @@ class Config(object):
     '''
     def __init__(self):
         self.set_defaults()
-        
-        
+          
     def set_defaults(self):
         '''
         Sets the default configuration settings.
@@ -34,9 +33,9 @@ class Config(object):
         
         # Command options
         self.cmd_prefix = PUBLIC_PREFIX
+        self.commands = COMMANDS
         self.plugins = PLUGINS
         
-    
     def parse_args(self):
         '''
         Loads configuration settings from command line.
@@ -106,6 +105,7 @@ class Config(object):
             self.port = cfg.get("port", self.port)
             self.channels = cfg.get("channels", self.channels)
             self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
+            self.commands = cfg.get("commands", self.commands)
             self.plugins = cfg.get("plugins", self.plugins)
             
         except Exception, e:
@@ -128,6 +128,7 @@ CHANNELS = ['#cipra']
 
 # Command options
 PUBLIC_PREFIX = '.'
+COMMANDS = ['seejoo.commands.standard', 'seejoo.commands.web']
 
 # Plugin options
 PLUGINS = ['seejoo.plugins.memo', 'seejoo.plugins.urlspy']
