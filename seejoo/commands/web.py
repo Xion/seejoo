@@ -304,8 +304,10 @@ def weather_forecast(place):
         
             res = "%s: %s^C" % (place, degrees)
             if comment:
-                comment = " ".join(re.split(r"\<br\s*/?\>", comment)) # Convert br's to spaces
-                res += " (" + str(comment).lower() + ")"
+                comment = str(comment).lower()
+                comment = re.sub(r"\<br\s*/?\>", " ", comment) # Convert br's to spaces
+                comment = re.sub(r"\sfucking", "", comment)
+                res += " (%s)" % comment
             return res
             
     return "Could not find weather information."
