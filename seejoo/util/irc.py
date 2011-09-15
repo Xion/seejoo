@@ -21,17 +21,16 @@ def say(bot, channel, messages):
     '''
     Sends message to given channel, which can also be a nick.
     '''
-    # Ensure we have a list of strings
-    if isinstance(messages, basestring):    messages = [messages]
-    
-    # Try to get nick; if not, then just assume it's a channel message
+    if isinstance(messages, basestring):
+        messages = [messages]
     target = get_nick(channel) or channel
     
     # Trim and post messages
-    messages = [m[:MESSAGE_MAX_LEN] for m in messages]            
-    for m in messages:
-        bot.msg(target, unicode(m).encode('utf-8', 'ignore'), LINE_MAX_LEN)
-        logging.debug("[SEND] <%s/%s> %s", "__me__", channel, m)
+    messages = [msg[:MESSAGE_MAX_LEN] for msg in messages]            
+    for msg in messages:
+        msg = unicode(msg).encode('utf-8', 'ignore')
+        bot.msg(target, msg, LINE_MAX_LEN)
+        logging.debug("[SEND] <%s/%s> %s", "__me__", channel, msg)
 
 
 ###############################################################################
