@@ -37,10 +37,40 @@ However, you will likely want to customize the bot by providing a YAML configura
 See the attached *example_config.yaml* for supported config parameters.
 
 
-Extending
+Creating your own commands
 -
-(Plugins & commands - to be expanded.)
+(To be expanded.)
 
+Creating your own plugins
+-
+_Plugins_ are a more sophisticated way to extend the bot's functionality. They are small programs which are driven
+by the IRC-related events, such as someone joining a channel, saying something, changing channel's mode, and so on.
+Plugins get notified about those events and can respond to them.
+
+From the Python point of view, plugins are simple callables which get called when an event happens.
+The simplest way to write a plugin is to subclass the <code>seejoo.ext.Plugin</code> class, which is shown
+at the example below:
+
+    from seejoo.ext import Plugin, plugin
+    from seejoo.util import irc
+    
+    @plugin
+    class HelloResponder(Plugin):
+        def message(self, bot, channel, user, message, msg_type):
+            if not channel: return # Discarding non-channel messages
+            
+            # if user says something which resembles a greeting, respond to it
+            msg = message.lower()
+            if msg.startswith("hello") or msg.startswith("hi"):
+                nick = irc.get_nick(user)
+                response = "Hello %s!" % nick
+                irc.say(bot, channel, response)
+                
+Note that the class is decorated to with <code>@plugin</code> decorator - this is required as in principle,
+plugins could also be normal functions.
+
+For the list of interesting events you could handle in your plugin, see the definition of
+<code>seejoo.ext.PLugin</code> class.
 
 [jbo]: http://www.lojban.org
 [venv]: http://pypi.python.org/pypi/virtualenv
