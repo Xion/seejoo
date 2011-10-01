@@ -51,21 +51,22 @@ From the Python point of view, plugins are simple callables which get called whe
 The simplest way to write a plugin is to subclass the <code>seejoo.ext.Plugin</code> class, which is shown
 at the example below:
 
-    from seejoo.ext import Plugin, plugin
-    from seejoo.util import irc
+```python
+from seejoo.ext import Plugin, plugin
+from seejoo.util import irc
     
-    @plugin
-    class HelloResponder(Plugin):
-        def message(self, bot, channel, user, message, msg_type):
-            if not channel: return # Discarding non-channel messages
-            
-            # if user says something which resembles a greeting, respond to it
-            msg = message.lower()
-            if msg.startswith("hello") or msg.startswith("hi"):
-                nick = irc.get_nick(user)
-                response = "Hello %s!" % nick
-                irc.say(bot, channel, response)
-                
+@plugin
+class HelloResponder(Plugin):
+    def message(self, bot, channel, user, message, msg_type):
+        if not channel: return # Discarding non-channel messages
+        
+        # if user says something which resembles a greeting, respond to it
+        msg = message.lower()
+        if msg.startswith("hello") or msg.startswith("hi"):
+            nick = irc.get_nick(user)
+            response = "Hello %s!" % nick
+            irc.say(bot, channel, response)
+```            
 Note that the class is decorated to with <code>@plugin</code> decorator - this is required as in principle,
 plugins could also be normal functions.
 
