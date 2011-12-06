@@ -96,6 +96,7 @@ def evaluate_expression(exp):
         return res        
     else:
         # Evaluation timed out; kill the process and return error
-        os.kill(eval_process.pid, 9)    # This will leave defunct process; take care of it later
+        os.kill(eval_process.pid, 9)
+        os.waitpid(eval_process.pid, os.WUNTRACED)
         eval_process = None
         return "Operation timed out."

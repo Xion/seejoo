@@ -70,7 +70,8 @@ def google_search(query):
     Performs a search using Google search engine.
     @warning: Uses deprecated Google Web Search API that has limitations to 100 queries per day.
     '''
-    if not query or len(str(query).strip()) == 0:    return "No query supplied."
+    if not query or len(str(query).strip()) == 0:
+        return "No query supplied."
     json_resp = _google_websearch(query)
     
     # Parse the response and return first few results
@@ -78,7 +79,7 @@ def google_search(query):
     result_count = _get_google_websearch_result_count(json_resp) 
     
     # Format resulting string
-    res = [r['titleNoFormatting'][:40] + " - " + r['unescapedUrl'] for r in results]
+    res = (r['titleNoFormatting'][:40] + " - " + r['unescapedUrl'] for r in results)
     res = "  |  ".join(res)
     if result_count > MAX_QUERY_RESULTS:
         res += " (and about %s more)" % (result_count - MAX_QUERY_RESULTS)
@@ -100,7 +101,8 @@ def googlefight(queries):
     Performs a Googlefight, querying each term and displaying results.
     Queries shall be separated with semicolon.
     '''
-    if not queries: return "No queries provided."    
+    if not queries:
+        return "No queries provided."    
     queries = map(str.strip, queries.split(";"))
     
     # Query for each term
@@ -201,12 +203,16 @@ def wikipedia_definition(term):
     Looks up given term in English Wikipedia and returns the beginning
     of its definition.
     '''
-    if not term or len(str(term).strip()) == 0:  return "No term supplied."
+    if not term or len(str(term).strip()) == 0:
+        return "No term supplied."
+    
     page = get_wikipage_content(term)
-    if not page:    return "Could not connect to Wikipedia."
+    if not page:
+        return "Could not connect to Wikipedia."
     
     wiki_def = get_definition_from_wiki(page, 200)
-    if not wiki_def:    return "Could found the definition in Wikipedia."
+    if not wiki_def:
+        return "Could found the definition in Wikipedia."
     
     # Handle Wikipedia redirects
     if wiki_def.startswith("#REDIRECT"):
@@ -247,7 +253,9 @@ def urban_dictionary(term):
     Looks up given term in urbandictionary.com. Returns the first sentence
     of definition.
     '''
-    if not term or len(str(term).strip()) == 0:  return "No term supplied."
+    if not term or len(str(term).strip()) == 0:
+        return "No term supplied."
+    
     url = "http://www.urbandictionary.com/define.php?term=%s" % urllib2.quote(term)
     ud_site = download(url)
     if not ud_site: return "Could not retrieve definition of '%s'." % term
@@ -285,7 +293,9 @@ def weather_forecast(place):
     Polls thefuckingweather.com (sic) site for current weather data at specific
     place. Returns a text containing current temperature, whether it's raining etc.
     '''
-    if not place or len(str(place).strip()) == 0: return "No place supplied."
+    if not place or len(str(place).strip()) == 0:
+        return "No place supplied."
+    
     url = "http://www.thefuckingweather.com/?zipcode=%s&CELSIUS=yes" % urllib2.quote(place)
     fw_site = download(url)
     if not fw_site: return "Could not retrieve weather information."
@@ -304,8 +314,10 @@ def weather_forecast(place):
         
             res = "%s: %s^C" % (place, degrees)
             if comment:
-                comment = " ".join(re.split(r"\<br\s*/?\>", comment)) # Convert br's to spaces
-                res += " (" + str(comment).lower() + ")"
+                comment = str(comment).lower()
+                comment = re.sub(r"\<br\s*/?\>", " ", comment) # Convert br's to spaces
+                comment = re.sub(r"\sfucking", "", comment)
+                res += " (%s)" % comment
             return res
             
     return "Could not find weather information."

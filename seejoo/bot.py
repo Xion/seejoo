@@ -39,8 +39,32 @@ class Bot(IRCClient):
             func.__doc__ = doc
             ext.register_command(cmd, func)
             
+        self._import_commands()
         self._import_plugins()
-            
+    
+    def _import_commands(self):
+        '''
+        Imports commands listed in config.commands.
+        @return: Number of command modules imported
+        '''
+        if not config.commands:
+            logging.info("No commands to import")
+            return 0
+        
+        imported = 0
+        for c in config.commands:
+            try:
+                __import__(c, globals(), level = 0)
+                logging.debug("Command module '%s' imported successfully.", c)
+                imported += 1
+            except ImportError:
+                logging.warning("Plugin '%s' could not be found.", c)
+            except Exception, e:
+                logging.warning("Could not import command module '%s' (%s: %s).", c, type(e).__name__, e)
+                
+        logging.info("Imported %s command module(s)", imported)
+        return imported
+        
     def _import_plugins(self):
         '''
         Imports plugins listed in config.plugins.
