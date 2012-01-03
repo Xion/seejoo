@@ -67,11 +67,11 @@ class HelloResponder(Plugin):
             response = "Hello %s!" % nick
             irc.say(bot, channel, response)
 ```            
-Note that the class is decorated to with <code>@plugin</code> decorator - this is required as in principle,
+Note that the class is decorated to with <code>@plugin</code> decorator. This is required as in principle,
 plugins could also be normal functions.
 
 For the list of interesting events you could handle in your plugin, see the definition of
-<code>seejoo.ext.PLugin</code> class.
+<code>seejoo.ext.Plugin</code> class.
 
 [jbo]: http://www.lojban.org
 [venv]: http://pypi.python.org/pypi/virtualenv
