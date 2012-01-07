@@ -29,8 +29,9 @@ class Chuck(Plugin):
         if not jsonData:
             return "Jokes not available at the moment.";
 
-        data = json.loads(jsonData)
-        if not data:
+        try:
+            data = json.loads(jsonData)
+        except ValueError:
             return "Jokes can not be parsed.";
         
         joke = data.get("value", {}).get("joke")
