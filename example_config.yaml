@@ -1,16 +1,27 @@
 # Example configuration file for seejoo
 
-nickname: seejoo							# Nickname used by the bot
-server: irc.freenode.net					# IRC server the bot will connect to
-port: 6667									# Port to connect on (6667 is the default)
-channels:									# Channels the bot should join.
-	- python								# If channel name begins with single hash, it can be omitted
-	- "##python-friendly"
+# Nickname used by the bot
+nickname: seejoo
 
-command_prefix: .							# A prefix which should be prepended commands said in channel;
-											# dot by default. You can change it if seejoo should coexist
-											# with other bot(s) that use(s) dot as their command prefix.
+# IRC server th bot will connect to
+server: irc.freenode.net
 
-plugins:									# List of plugin modules to be loaded by the bot
-	- seejoo.plugins.memo					# (each entry should be a fully qualified module name)
-	- seejoo.plugins.urlspy
+# Port to connect on (6667 is the default)
+port: 6667
+
+# Channels the bot should join
+# (if channel name begins with single hash, it can be omitted)
+channels:
+- python
+- "##python-friendly"
+
+# A prefix which should be prepended to commands said in channel;
+# dot by default. You can changr it if seejoo should coexist
+# with other bots that use dot as their command prefix
+command_prefix: .
+
+# List of plugins used by the bot
+# (each entry should be a fully qualified module name)
+plugins:
+- seejoo.plugins.memo
+- seejoo.plugins.urlspy
