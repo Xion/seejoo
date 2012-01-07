@@ -321,3 +321,9 @@ def weather_forecast(place):
             return res
             
     return "Could not find weather information."
+
+@command('j')
+def joke(place):
+    jsonData = download("http://api.icndb.com/jokes/random")
+    data = json.loads(jsonData)
+    return data["value"]["joke"]
