@@ -194,6 +194,7 @@ def get_storage_dir(plugin):
     data_dir = os.path.expanduser("~/.seejoo/data/plugins")
     
     # Form the name of directory
+    # TODO: fix this; it won't work for functions-as-plugins in current form
     name = None
     try:
         name = plugin.__class__.__name__
