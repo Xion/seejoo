@@ -172,7 +172,7 @@ def notify(bot, event, **kwargs):
             return res
             
     except Exception, e:
-        logging.error("Error while notifying plugins: %s - %s", type(e).__name__, e)
+        logging.exception("Error while notifying plugins: %s - %s", type(e).__name__, e)
     
     
 # Flags used by seejoo when notifying plugins
