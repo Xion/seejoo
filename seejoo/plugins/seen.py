@@ -7,9 +7,10 @@ Created on 2012-01-12
 @author: Xion
 '''
 from seejoo.ext import plugin, get_storage_dir
+from datetime import datetime
+from time import time
 import os
 import json
-
 
 
 @plugin
@@ -18,23 +19,51 @@ def seen_plugin(bot, event, **kwargs):
 	it eliminates some redundancy in recording user's activity.
 	'''
 	if event == 'command' and kwargs['cmd'] == 'seen':
-		return handle_seen_command(user, kwargs['args'])
+		return handle_seen_command(kwargs['args'])
 	track_user_activity(event, **kwargs)
 
 seen_plugin.commands = {'seen': "Reports last time when user was seen"}
+
+storage_dir = get_storage_dir(seen_plugin)
+
+
+###############################################################################
+# .seen command
+
+def handle_seen_command(user):
+	''' Handle the .seen command, returning the answer: when given user
+	has been last seen.
+	'''
+	user_file = os.path.join(storage_dir, user)
+	if not os.path.exists(user_file):
+		return "Sorry, I have never heard of '%s'." % user
+
+	with open(user_file, 'r') as f:
+		activity = json.load(f)
+
+	most_recent = max(activity, lambda a: a['timestamp'])
+	
+	activity_time = datetime.fromtimestamp(a['timestamp'])
+	formatted_time = activity_time.strftime("%Y-%m-%d %H:%M:%S")
+	return "%s was last seen at %s: %s" % (user, formatted_time, a['text'])
 
 
 ###############################################################################
 # Tracking user activity
 
-storage_dir = get_storage_dir(seen_plugin)
-
-def track_user_activity(user, event, **kwargs):
+def track_user_activity(event, **kwargs):
 	''' Tracks activity of some user, recording it for further retrieving
 	with .seen command.
 	'''
-	# ...
+	text = format_activity_text(event, **kwargs)
 
+	channel = kwargs.get('channel')
+	if event == 'kick':
+		record_activity(kwargs.get('kicker'), channel, text)
+		record_activity(kwargs.get('kickee'), channel, text)
+	else:
+		record_activity(kwargs.get('user'), channel, text)
+	
 
 def format_activity_text(event, **kwargs):
 	''' Creates a line of text describing an IRC event with given parameters.
@@ -67,6 +96,7 @@ def record_activity(user, channel, text):
 		with open(user_file, 'r') as f:
 			activity = json.load(f)
 
-	activity.setdefault(channel, []).append(text)
+	channel = channel or '(global)'
+	activity[channel] = {'event': text, 'time': time()}
 	with open(user_file, 'w') as f:
 		json.dump(f)
