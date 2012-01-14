@@ -59,17 +59,16 @@ def track_activity(event, **kwargs):
 	'''
 	text = format_activity_text(event, **kwargs)
 
-	channel = kwargs.get('channel')
-	if event == 'kick':
-		record_user_activity(kwargs.get('kicker'), channel, text)
-		record_user_activity(kwargs.get('kickee'), channel, text)
-	elif event == 'nick':
-		record_user_activity(kwargs.get('old'), channel, text)
-		record_user_activity(kwargs.get('new'), channel, text)
+	# retrieve user(s) for this activity
+	if event == 'kick':		users = ['kicker', 'kickee']
+	elif event == 'nick':	users = ['old', 'new']
 	else:
 		user = kwargs.get('user')
-		if user:
-			record_user_activity(user, channel, text)
+		users = [user] if user else []
+
+	channel = kwargs.get('channel')
+	for user in users:
+		record_user_activity(user, channel, text)
 	
 
 def format_activity_text(event, **kwargs):
