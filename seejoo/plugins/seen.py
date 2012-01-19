@@ -43,15 +43,19 @@ def handle_seen_command(user):
 	with open(user_file, 'r') as f:
 		activity = json.load(f)
 
-	most_recent = max(activity.itervalues(), key = lambda a: a['timestamp'])
+	channel, last = max(activity.iteritems(), key = lambda (_, a): a['timestamp'])
 
-	activity_time = datetime.fromtimestamp(most_recent['timestamp'])
+	activity_time = datetime.fromtimestamp(last['timestamp'])
 	formatted_time = activity_time.strftime("%Y-%m-%d %H:%M:%S")
-	return "%s was last seen at %s: %s" % (user, formatted_time, most_recent['text'])
+	channel_part = " on %s" % channel if channel != GLOBAL_CHANNEL else ""
+
+	return "%s was last seen%s at %s: %s" % (user, channel_part, formatted_time, last['text'])
 
 
 ###############################################################################
 # Tracking user activity
+
+GLOBAL_CHANNEL = '(global)'
 
 def track_activity(event, **kwargs):
 	''' Tracks activity of some user, recording it for further retrieving
@@ -107,7 +111,7 @@ def record_user_activity(user, channel, text):
 			try:				activity = json.load(f)
 			except ValueError:	pass
 
-	channel = channel or '(global)'
+	channel = channel or GLOBAL_CHANNEL
 	activity[channel] = {'text': text, 'timestamp': time()}
 	with open(user_file, 'w') as f:
 		json.dump(activity, f)
