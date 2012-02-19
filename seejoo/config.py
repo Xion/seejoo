@@ -76,7 +76,7 @@ class Config(object):
         if options.config_file:
             try:    self.load_from_file(options.config_file)
             except Exception:
-                logging.error("Could not read specified config file.")
+                logging.error("Could not read specified config file %s", options.config_file)
 
         # Remember the rest of options
         for opt in ['nickname', 'server', 'port', 'channels']:
@@ -147,7 +147,7 @@ PUBLIC_PREFIX = '.'
 COMMANDS = ['seejoo.commands.standard', 'seejoo.commands.web']
 
 # Plugin options
-PLUGINS = ['seejoo.plugins.memo', 'seejoo.plugins.urlspy']
+PLUGINS = dict.fromkeys(['seejoo.plugins.memo', 'seejoo.plugins.urlspy'])
 
 
 ###############################################################################
