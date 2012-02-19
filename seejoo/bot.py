@@ -9,7 +9,7 @@ from seejoo import ext, commands #@UnusedImport
 from seejoo.config import config
 from seejoo.util import irc
 from seejoo.util.strings import normalize_whitespace
-from twisted.internet import reactor
+from twisted.internet import reactor, task
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.words.protocols.irc import IRCClient
 import functools
@@ -25,7 +25,7 @@ import re
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 
 class Bot(IRCClient):
-    
+    ''' Main class of the bot, which is obviouslyu an IRC client. '''
     versionName = 'seejoo'
     versionNum = '1.0'
     versionEnv = os.name
@@ -41,10 +41,13 @@ class Bot(IRCClient):
             
         self._import_commands()
         self._import_plugins()
+
+        # schedule a task to be ran every second
+        tick_task = task.LoopingCall(self.tick)
+        tick_task.start(1.0)
     
     def _import_commands(self):
-        '''
-        Imports commands listed in config.commands.
+        ''' Imports commands listed in config.commands.
         @return: Number of command modules imported
         '''
         if not config.commands:
@@ -66,8 +69,7 @@ class Bot(IRCClient):
         return imported
         
     def _import_plugins(self):
-        '''
-        Imports plugins listed in config.plugins.
+        ''' Imports plugins listed in config.plugins.
         @return Number of plugins imported
         '''
         if not config.plugins:
@@ -89,9 +91,7 @@ class Bot(IRCClient):
         return imported
         
     def _handle_command(self, cmd, args):
-        '''
-        Handles a bot-level command. Returns its result.
-        '''
+        ''' Handles a bot-level command. Returns its result. '''
         if cmd == 'help':
             
             if not args:
@@ -108,34 +108,33 @@ class Bot(IRCClient):
                 return "No help found for '%s'" % args
     
     
+    def tick(self):
+        ''' Method called every second. Provides a way for plugins
+        to perform actions based on time.
+        '''
+        ext.notify(self, 'tick')
+
     def signedOn(self):
-        '''
-        Method called upon successful connection to IRC server.
-        '''
+        ''' Method called upon successful connection to IRC server. '''
         self.factory.resetDelay()
         logging.debug("[CONNECT] Connected to server")
         
-        # Join channels
-        for chan in config.channels:    self.join(chan)
+        for chan in config.channels:
+            self.join(chan)
         
         
     def myInfo(self, servername, version, umodes, cmodes):
-        '''
-        Method called with information about the server.
-        '''
-        # Log and notify plugins
+        ''' Method called with information about the server. '''
         logging.debug("[SERVER] %s running %s; usermodes=%s, channelmodes=%s", servername, version, umodes, cmodes)
         ext.notify(self, 'connect', host = servername)
 
         
     def privmsg(self, user, channel, message):
-        '''
-        Method called upon receiving a message on a channel or private message.
-        '''
-        # Discard server messages
-        if channel == "*":  logging.debug("[SERVER] %s", message) ; return
+        ''' Method called upon receiving a message on a channel or private message. '''
+        if channel == "*":
+            logging.debug("[SERVER] %s", message)
+            return
         
-        # Notify plugins
         ext.notify(self, 'message',
                    user = user, channel = (channel if channel != self.nickname else None),
                    message = message, type = ext.MSG_SAY)
@@ -164,8 +163,7 @@ class Bot(IRCClient):
                 irc.say(self, user if is_priv else channel, resp)
             
     def _command(self, user, command):
-        '''
-        Internal function that handles the processing of commands. 
+        ''' Internal function that handles the processing of commands. 
         Returns the result of processing as a text response to be "said" by the bot,
         or None if it wasn't actually a command.
         '''
@@ -225,9 +223,7 @@ class Bot(IRCClient):
         
         
     def action(self, user, channel, message):
-        '''
-        Method called when user performs and action (/me) in channel.
-        '''
+        ''' Method called when user performs and action (/me) in channel. '''
         is_priv = channel == self.nickname
         
         # Notify plugins and log message
@@ -237,107 +233,70 @@ class Bot(IRCClient):
                    message = message, type = ext.MSG_ACTION)
         
     def noticed(self, user, channel, message):
-        '''
-        Method called upon recieving notice message (either channel or private).
-        '''
+        ''' Method called upon recieving notice message (either channel or private). '''
         is_priv = channel == self.nickname
         
-        # Notify plugins and log the message
         logging.debug("[NOTICE] <%s/%s> %s", user, channel if not is_priv else '__priv__', message)
         ext.notify(self, 'message',
                    user = user, channel = (channel if not is_priv else None),
                    message = message, type = ext.MSG_NOTICE)
         
     def modeChanged(self, user, channel, set, modes, args):
-        '''
-        Method called when user changes mode(s) for a channel.
-        '''
-        # Notify plugins and log the message
+        ''' Method called when user changes mode(s) for a channel. '''
         logging.debug("[MODE] %s sets %s%s %s for %s", user, "+" if set else "-", modes, args, channel)
         ext.notify(self, 'mode',
                    user = user, channel = channel, set = set, modes = modes, args = args)
         
     def topicUpdated(self, user, channel, newTopic):
-        '''
-        Method called when topic of channel changes or upon joining the channel.
-        '''
-        # Notify plugins and log message
+        ''' Method called when topic of channel changes or upon joining the channel. '''
         logging.debug("[TOPIC] <%s/%s> %s", user, channel, newTopic)
         ext.notify(self, 'topic', channel = channel, topic = newTopic, user = user)
         
     def joined(self, channel):
-        '''
-        Method called when bot has joined a channel.
-        '''
-        # Notify plugins and log the event
+        ''' Method called when bot has joined a channel. '''
         logging.debug("[JOIN] %s to %s", self.nickname, channel)
         ext.notify(self, 'join', channel = channel, user = self.nickname)
         
     def userJoined(self, user, channel):
-        '''
-        Method called when other user has joined a channel.
-        '''
-        # Notify plugins and log event
+        ''' Method called when other user has joined a channel. '''
         logging.debug("[JOIN] %s to %s", user, channel)
         ext.notify(self, 'join', channel = channel, user = user)
         
     def left(self, channel):
-        '''
-        Method called when bot has left a channel.
-        '''
-        # Notify plugins and log event
+        ''' Method called when bot has left a channel. '''
         logging.debug("[PART] %s from %s", self.nickname, channel)
         ext.notify(self, 'part', user = self.nickname, channel = channel)
         
     def userLeft(self, user, channel):
-        '''
-        Method called when other user has left a channel.
-        '''
-        # Notify plugins and log event
+        ''' Method called when other user has left a channel. '''
         logging.debug("[PART] %s from %s", self.nickname, channel)
         ext.notify(self, 'part', user = self.nickname, channel = channel)
         
     def kickedFrom(self, channel, kicker, message):
-        '''
-        Method called when bot is kicked from a channel.
-        '''
-        # Notify plugins and log event
+        ''' Method called when bot is kicked from a channel. '''
         logging.debug("[KICK] %s from %s by %s (%s)", self.nickname, channel, kicker, message)
         ext.notify(self, 'kick', channel = channel, kicker = kicker, kickee = self.nickname, reason = message)
         
     def userKicked(self, kickee, channel, kicker, message):
-        '''
-        Method called when other user is kicked from a channel.
-        '''
-        # Notify plugins and log event
+        ''' Method called when other user is kicked from a channel. '''
         logging.debug("[KICK] %s from %s by %s (%s)", kickee, channel, kicker, message)
         ext.notify(self, 'kick', channel = channel, kicker = kicker, kickee = kickee, reason = message)
         
     def nickChanged(self, nick):
-        '''
-        Method called when bot's nick has changed.
-        '''
-        # Remember new nick
+        ''' Method called when bot's nick has changed. '''
         old = self.nickname
         self.nickname = nick
         
-        # Notify plugins and log event
         logging.debug("[NICK] %s -> %s", old, nick)
         ext.notify(self, 'nick', old = old, new = nick)
         
     def userRenamed(self, oldname, newname):
-        '''
-        Method called when other user has changed their nick.
-        '''
-        # Notify plugins and log event
+        ''' Method called when other user has changed their nick. '''
         logging.debug("[NICK] %s -> %s", oldname, newname)
         ext.notify(self, 'nick', old = oldname, new = newname)
         
     def userQuit(self, user, message):
-        '''
-        Method called when other user has disconnected from IRC.
-        '''
-        # Notify plugins and log event
+        ''' Method called when other user has disconnected from IRC. '''
         logging.debug("[QUIT] %s (%s)", user, message)
         ext.notify(self, 'quit', user = user, message = message)
 
@@ -349,8 +308,6 @@ class BotFactory(ReconnectingClientFactory):
     protocol = Bot
 
 def run():
-    '''
-    Runs the bot, using configuration specified in config module.
-    '''
+    ''' Runs the bot, using configuration specified in config module. '''
     reactor.connectTCP(config.server, config.port, BotFactory())    # @UndefinedVariable
     reactor.run()                                                   # @UndefinedVariable

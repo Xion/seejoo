@@ -18,7 +18,7 @@ def seen_plugin(bot, event, **kwargs):
 	''' Main function. Plugin is implemented as a function because
 	it eliminates some redundancy in recording user's activity.
 	'''
-	if event == 'init':	return
+	if event in ['init', 'tick']:	return
 	if event == 'command' and str(kwargs['cmd']) == 'seen':
 		return handle_seen_command(kwargs['args'])
 	track_activity(event, **kwargs)

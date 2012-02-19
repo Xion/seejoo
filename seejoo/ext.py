@@ -134,6 +134,7 @@ class Plugin(object):
     def mode(self, bot, channel, user, set, modes, args):   pass
     def topic(self, bot, channel, topic, user):             pass
     def command(self, bot, user, cmd, args):                pass
+    def tick(self, bot):                                    pass
     
     def __call__(self, bot, event, **kwargs):
         try:                    return getattr(self, event)(bot, **kwargs)
