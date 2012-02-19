@@ -2,6 +2,7 @@
 seejoo.log
 .project
 .pydevproject
+*.sublime-*
 dist
 build
 *.egg-info

@@ -8,23 +8,21 @@ from command line and/or YAML file.
 '''
 from optparse import OptionGroup, OptionParser # Not argparse since we target Python 2.6 as well
 import logging
+import collections
 
 
 ###############################################################################
 # Config class
 
 class Config(object):
-    '''
-    Configuration class. Stores bot's settings, read from command line
+    ''' Configuration class. Stores bot's settings, read from command line
     and/or YAML configuration file
     '''
     def __init__(self):
         self.set_defaults()
           
     def set_defaults(self):
-        '''
-        Sets the default configuration settings.
-        '''
+        ''' Sets the default configuration settings. '''
         # IRC options
         self.nickname = NICKNAME
         self.server = SERVER
@@ -37,8 +35,7 @@ class Config(object):
         self.plugins = PLUGINS
         
     def parse_args(self):
-        '''
-        Loads configuration settings from command line.
+        ''' Loads configuration settings from command line.
         These take precedence before the settings from config file
         (if custom config file is supplied), which in turn take precedence before
         settings from default config file (if present).
@@ -83,38 +80,57 @@ class Config(object):
 
         # Remember the rest of options
         for opt in ['nickname', 'server', 'port', 'channels']:
-            val = getattr(options, opt)
+            val = getattr(options, opt, None)
             if val: setattr(self, opt, val)
         
         
     def load_from_file(self, file):
-        '''
-        Loads configuration from the specified YAML file.
+        ''' Loads configuration from the specified YAML file.
         @param file: Name of the YAML file to load configuration from.
         '''
         try:
-           
-            # Read the file (or at least try to)
             import yaml
             file = open(file)
             cfg = yaml.load(file)
             
-            # Parse the contents
             self.nickname = cfg.get("nickname", self.nickname)
             self.server = cfg.get("server", self.server)
             self.port = cfg.get("port", self.port)
             self.channels = cfg.get("channels", self.channels)
             self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
             self.commands = cfg.get("commands", self.commands)
-            self.plugins = cfg.get("plugins", self.plugins)
+            self.plugins = self.load_plugins(cfg)
             
         except Exception, e:
-            
             logging.error("Could not load configuration from '%s':", file)
             try:    raise e
             except KeyError, e:     logging.error("Invalid file contents.")
             except IOError:         logging.error("File not found.")
             except ImportError:     logging.error("PyYAML library not found.")
+
+    def load_plugins(self, cfg):
+        ''' Processes the 'plugins' section of configuration file, if present.
+        @return: Dictionary mapping names of plugin modules onto their configuration dicts
+                 (or None, if no plugin-specific config has been supplied)
+        '''
+        plugins_section = cfg.get('plugins', self.plugins)
+        if not plugins_section:
+            return {}
+
+        plugins = {}
+        for plugin in plugins_section:
+            if isinstance(plugin, collections.Mapping):
+                plugin_module = plugin.get('module')
+                if not plugin_module:
+                    logging.warning("Invalid entry in 'plugins' section of config file: %s", plugin)
+                    continue
+                plugin_config = plugin.get('config')
+            else:
+                plugin_module = plugin
+                plugin_config = None
+            plugins[plugin_module] = plugin_config or None
+
+        return plugins
 
         
 ###############################################################################

@@ -12,6 +12,7 @@ import functools
 import logging
 import os
 import types
+import collections
 
 
 BOT_COMMANDS = { 'help': 'Displays help about particular command' }
@@ -21,9 +22,7 @@ _plugins = []
 
 
 def _get_command_doc(cmd_name):
-    '''
-    Retrieves a documentation for particular command.
-    '''
+    ''' Retrieves a documentation for particular command. '''
     if not cmd_name:    return
     
     cmd_obj = _commands.get(cmd_name)
@@ -47,8 +46,7 @@ def _get_command_doc(cmd_name):
 # Commands
 
 def register_command(name, cmd_object):
-    '''
-    Registers a new command. Commands are bot's utility functions that can be
+    ''' Registers a new command. Commands are bot's utility functions that can be
     invoked on IRC by saying their names and arguments on the channel where
     bot is present (following prefix defined in configuration) or by sending
     a private message to the bot (with or without prefix).
@@ -70,16 +68,12 @@ def register_command(name, cmd_object):
     
     
 def command(name):
-    '''
-    Decorator functions for registering commands easily.
-    '''
+    ''' Decorator functions for registering commands easily. '''
     return functools.partial(register_command, name)
 
 
 def get_command(cmd):
-    '''
-    Retrieves a command object associated with given name.
-    '''
+    ''' Retrieves a command object associated with given name. '''
     global _commands
     return _commands.get(cmd)
 
@@ -105,20 +99,23 @@ def register_plugin(plugin):
         logging.error('Plugin object "%s" is not callable.', str(plugin))
         return
 
-    # If plugin declares any commands, add them to command tree
+    # if plugin declares any commands, add them to command tree
     cmds = getattr(plugin, 'commands', None)
     if cmds:
-        if hasattr(cmds, 'iteritems'):
-            # It's a dictionary or at least we assume so
+        if isinstance(cmds, collections.Mapping):
             for k, v in cmds.iteritems():
                 register_command(k, v)
         else:
-            # Assume it's a simple list of names
             for cmd in cmds:
                 register_command(str(cmd), None)
+    
+    # initialize the plugin with its configuration
+    plugin_config = config.plugins.get(plugin.__module__)
+    plugin(None, 'init', plugin_config)
         
     global _plugins
     _plugins.append(plugin)
+
 
 
 class Plugin(object):
@@ -126,6 +123,7 @@ class Plugin(object):
     Base class that can be derived in by plugin objects. It intercepts
     events and converts them to method calls.
     '''
+    def init(self, bot, cfg):                               pass
     def connect(self, bot, host):                           pass
     def join(self, bot, channel, user):                     pass
     def part(self, bot, channel, user):                     pass
