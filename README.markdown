@@ -4,7 +4,7 @@ seejoo
 =
 _seejoo_ is an IRC utility bot coded in Python and built upon the Twisted networking library.
 Its main highlight is the extensible architecture: in most cases, new functionality can be added
-by implementing custom **commands** and **plugins**, rather than hacking the core code.
+by implementing custom **plugins**, rather than hacking the core code.
 This approach also allows for customizing the specific bot instance to meet one'a particular needs.
 
 The name _seejoo_ comes from the [lojban][jbo] word _sidju_ which roughly means 'to help'.
@@ -37,13 +37,9 @@ However, you will likely want to customize the bot by providing a YAML configura
 See the attached *example_config.yaml* for supported config parameters.
 
 
-Creating your own commands
--
-(To be expanded.)
-
 Creating your own plugins
 -
-_Plugins_ are a more sophisticated way to extend the bot's functionality. They are small programs which are driven
+_Plugins_ are means for extending the bot's functionality. They are small programs which are driven
 by the IRC-related events, such as someone joining a channel, saying something, changing channel's mode, and so on.
 Plugins get notified about those events and can respond to them.
 
