@@ -42,6 +42,7 @@ class Bot(IRCClient):
             
         self._import_commands()
         self._import_plugins()
+        self._init_plugins()
 
         # schedule a task to be ran every second
         tick_task = task.LoopingCall(self.tick)
@@ -90,6 +91,12 @@ class Bot(IRCClient):
         
         logging.info("Imported %s plugin(s)", imported)        
         return imported
+
+    def _init_plugins(self):
+        ''' Initializes plugins that have a configuration section in config.plugins. '''
+        for plugin in ext._plugins:
+            plugin_config = config.plugins.get(plugin.__module__)
+            plugin(None, 'init', config=plugin_config)
         
     def _handle_command(self, cmd, args):
         ''' Handles a bot-level command. Returns its result. '''

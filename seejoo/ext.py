@@ -109,10 +109,6 @@ def register_plugin(plugin):
             for cmd in cmds:
                 register_command(str(cmd), None)
     
-    # initialize the plugin with its configuration
-    plugin_config = config.plugins.get(plugin.__module__)
-    plugin(None, 'init', config=plugin_config)
-        
     global _plugins
     _plugins.append(plugin)
 
@@ -155,9 +151,7 @@ def plugin(plugin):
 
 
 def notify(bot, event, **kwargs):
-    '''
-    Notifies all registered plugins about an IRC event.
-    ''' 
+    ''' Notifies all registered plugins about an IRC event. ''' 
     try:
         if event != 'command':
             for p in _plugins:  p(bot, event, **kwargs)
