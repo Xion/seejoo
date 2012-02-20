@@ -33,7 +33,7 @@ setup(name = Bot.versionName,
                      'Topic :: Utilities',
                      ],
       
-      requires = ['twisted', 'pyyaml'],
+      requires = ['twisted', 'pyyaml', 'lxml'],
       
       packages = find_packages(exclude = ['tests']),
       scripts = ['seejoo.py'],

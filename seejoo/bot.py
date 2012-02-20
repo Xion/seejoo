@@ -33,6 +33,7 @@ class Bot(IRCClient):
     def __init__(self, *args, **kwargs):
         ''' Initializer. '''
         self.nickname = config.nickname
+        self.channels = set()
         
         for cmd, doc in ext.BOT_COMMANDS.iteritems():
             func = functools.partial(self._handle_command, cmd)
@@ -254,6 +255,7 @@ class Bot(IRCClient):
         
     def joined(self, channel):
         ''' Method called when bot has joined a channel. '''
+        self.channels.add(channel)
         logging.debug("[JOIN] %s to %s", self.nickname, channel)
         ext.notify(self, 'join', channel = channel, user = self.nickname)
         
@@ -264,6 +266,7 @@ class Bot(IRCClient):
         
     def left(self, channel):
         ''' Method called when bot has left a channel. '''
+        self.channels.remove(channel)
         logging.debug("[PART] %s from %s", self.nickname, channel)
         ext.notify(self, 'part', user = self.nickname, channel = channel)
         
@@ -274,6 +277,7 @@ class Bot(IRCClient):
         
     def kickedFrom(self, channel, kicker, message):
         ''' Method called when bot is kicked from a channel. '''
+        self.channels.remove(channel)
         logging.debug("[KICK] %s from %s by %s (%s)", self.nickname, channel, kicker, message)
         ext.notify(self, 'kick', channel = channel, kicker = kicker, kickee = self.nickname, reason = message)
         
