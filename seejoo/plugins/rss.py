@@ -117,6 +117,8 @@ def parse_frequency(frequency):
 
     try:
         count, unit = frequency.split()
+        if not unit.endswith('s'):
+            unit += 's'
         return timedelta(**{unit: float(count)})
     except (ValueError, TypeError), _:
         return timedelta()

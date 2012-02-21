@@ -85,7 +85,7 @@ class Bot(IRCClient):
                 logging.debug("Plugin '%s' imported successfully.", p)
                 imported += 1
             except ImportError:
-                logging.warning("Plugin '%s' could not be found.", p)
+                logging.warning("Plugin '%s' could not be found.", p, exc_info=True)
             except Exception, e:
                 logging.warning("Could not import plugin '%s' (%s: %s).", p, type(e).__name__, e)
         
