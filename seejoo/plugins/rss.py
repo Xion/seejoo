@@ -47,11 +47,25 @@ class Rss(Plugin):
         if feeds:
             feeds = dict((f['name'], f) for f in feeds if 'name' in f)
             for f in feeds.itervalues():
-                frequency = f.get('frequency', '5 minutes')
-                f['frequency'] = parse_frequency(frequency)
+                self._process_feed_config(f)
 
         self.feeds = feeds or {}
         self.state = dict((feed, {}) for feed in self.feeds.keys())
+
+    def _process_feed_config(self, f):
+        ''' Does a processing on feed configuration, preparing it
+        to be used by the plugin.
+        '''
+        # parse frequency string into datetime
+        freq = f.get('frequency', '5 minutes')
+        f['frequency'] = parse_frequency(freq)
+
+        # fix the names of channels where feed updates shall be annouced
+        announce = f.get('announce')
+        if announce and not isinstance(announce, basestring):
+            f['announce'] = ['#' + chan for chan in announce
+                             if not chan.startswith('#')]
+
 
     def tick(self, bot):
         ''' Called every second. Checks the feeds for new items. '''
