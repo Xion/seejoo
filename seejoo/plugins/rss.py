@@ -147,7 +147,8 @@ def get_rss_items(url):
     '''
     try:
         rss = etree.parse(url)
-    except IOError:
+    except Exception, e:
+        logging.exception("Error while downloading feed %s", url)
         return []
     
     # parse the RSS content
