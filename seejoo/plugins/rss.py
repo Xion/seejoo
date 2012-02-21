@@ -82,17 +82,12 @@ class Rss(Plugin):
         if next_poll > datetime.now():
             return next_poll
 
-        logging.debug("Polling RSS feed '%s'...", name)
         items = poll_rss_feed(feed['url'], state.get('last_item'))
         self._announce_feed(name, items)
 
         state['last_poll_time'] = datetime.now()
         if items:
-            logging.info("Found %s new items in '%s' feed", len(items), name)
             state['last_item'] = items[0]['guid']
-        else:
-            logging.debug("No new items found in '%s' feed", name)
-
         return datetime.now() + frequency
 
 
