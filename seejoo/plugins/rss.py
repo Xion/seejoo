@@ -52,11 +52,10 @@ class Rss(Plugin):
 
         self.feeds = feeds or {}
         self.state = dict((feed, {}) for feed in self.feeds.keys())
-        print self.feeds
 
     def tick(self, bot):
         ''' Called every second. Checks the feeds for new items. '''
-        if not self.state: return
+        if not self.state:  return
 
         now = datetime.now()
         if self.next_poll > now:
@@ -68,7 +67,7 @@ class Rss(Plugin):
             global_next_poll = (next_poll if not global_next_poll
                                 else min(next_poll, global_next_poll))
         if global_next_poll:
-            self.next_poll = global_next_poll
+                self.next_poll = global_next_poll
 
 
     def _poll_and_update_feed(self, name, state):
@@ -79,20 +78,23 @@ class Rss(Plugin):
         last_poll = state.get('last_poll_time', datetime.min)
         frequency = feed['frequency']
 
-        if last_poll + frequency <= datetime.now():
-            logging.debug("Polling RSS feed '%s'...", name)
-            items = poll_rss_feed(feed['url'], state.get('last_item'))
-            self._announce_feed(name, items)
+        next_poll = last_poll + frequency
+        if next_poll > datetime.now():
+            return next_poll
 
-            last_poll = datetime.now()
-            state['last_poll_time'] = last_poll
-            if items:
-                logging.info("Found %s new items in '%s' feed", len(items), name)
-                state['last_item'] = items[0]['guid']
-            else:
-                logging.debug("No new items found in '%s' feed", name)
+        logging.debug("Polling RSS feed '%s'...", name)
+        items = poll_rss_feed(feed['url'], state.get('last_item'))
+        self._announce_feed(name, items)
 
-        return last_poll + frequency
+        state['last_poll_time'] = datetime.now()
+        if items:
+            logging.info("Found %s new items in '%s' feed", len(items), name)
+            state['last_item'] = items[0]['guid']
+        else:
+            logging.debug("No new items found in '%s' feed", name)
+
+        return datetime.now() + frequency
+
 
     def _announce_feed(self, name, items):
         ''' Announces polled feed items to all target channels. '''
@@ -103,7 +105,7 @@ class Rss(Plugin):
 
         for item in items:
             item_text = "@ %s -> %s (by %s) <%s>" % (name, item['title'],
-                                                     item.get('author', 'unknown'), item['link'])
+                                                     item.get('authorName', 'unknown'), item['link'])
             for channel in channels:
                 irc.say(self.bot, channel, item_text)
 
@@ -134,7 +136,7 @@ def poll_rss_feed(feed_url, last_item=None):
     rss_items = get_rss_items(feed_url)
 
     if last_item:
-        for item, i in enumerate(rss_items):
+        for i, item in enumerate(rss_items):
             guid = item.get('guid')
             if guid and guid == last_item:
                 return rss_items[:i]
@@ -146,8 +148,12 @@ def get_rss_items(url):
     @note: All <channel> elements are merged into flat list.
     @return: List of RSS items (dictionaries)
     '''
-    rss = etree.parse(url)
+    try:
+        rss = etree.parse(url)
+    except IOError:
+        return []
     
+    # parse the RSS content
     res = []
     for channel in rss.getroot().iter('channel'):
         for item in channel.iter('item'):

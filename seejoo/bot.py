@@ -96,7 +96,7 @@ class Bot(IRCClient):
         ''' Initializes plugins that have a configuration section in config.plugins. '''
         for plugin in ext._plugins:
             plugin_config = config.plugins.get(plugin.__module__)
-            plugin(None, 'init', config=plugin_config)
+            plugin(self, 'init', config=plugin_config)
         
     def _handle_command(self, cmd, args):
         ''' Handles a bot-level command. Returns its result. '''
