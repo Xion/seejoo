@@ -7,11 +7,10 @@ Created on 2011-08-27
 Setup script for the seejoo project.
 '''
 from setuptools import setup, find_packages
-from seejoo.bot import Bot
 
 
-setup(name = Bot.versionName,
-      version = Bot.versionNum,
+setup(name = "seejoo",
+      version = "1.1",
       description = 'Extensible IRC bot for geek-centered channels',
       long_description = open("README.markdown").read(),
       author = 'Karol "Xion" Kuczmarski',
