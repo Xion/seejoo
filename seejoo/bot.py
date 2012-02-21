@@ -147,23 +147,22 @@ class Bot(IRCClient):
                    user = user, channel = (channel if channel != self.nickname else None),
                    message = message, type = ext.MSG_SAY)
         
-        # First, check whether this is a private message and whether we shall interpret
-        # it as a command invocation
         is_priv = channel == self.nickname
         if is_priv:
-            is_command = True   # On priv, everything's a command
-            if config.cmd_prefix and message.startswith(config.cmd_prefix): # Prefix is optional; get rid of it if present
-                message = message[len(config.cmd_prefix):]
+            is_command = True   # on priv, everything's a command
+            if config.cmd_prefix and message.startswith(config.cmd_prefix):
+                message = message[len(config.cmd_prefix):]  # remove prefix if present anyway
         else:
             if config.cmd_prefix:
                 is_command = message.startswith(config.cmd_prefix)
-                if is_command:  message = message[len(config.cmd_prefix):]  # Get rid of the prefix if present
+                if is_command:
+                    message = message[len(config.cmd_prefix):]
             else:
-                is_command = True   # If no prefix defined, everything is a command
+                is_command = True   # if no prefix is defined, everything is a command
         
-        # Log message/command
         logging.info ("[%s] <%s/%s> %s", "COMMAND" if is_command else "MESSAGE",
                        user, channel if not is_priv else '__priv__', message)
+                       
         if is_command:
             resp = self._command(user, message)
             if resp:
