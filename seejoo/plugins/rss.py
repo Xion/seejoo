@@ -113,8 +113,8 @@ class Rss(Plugin):
             channels = self.bot.channels
 
         for item in items:
-            item_text = "@ %s -> %s (by %s) <%s>" % (name, item['title'],
-                                                     item.get('authorName', 'unknown'), item['link'])
+            item_text = "@ %s -> %s (by %s) -- %s" % (name, item['title'],
+                                                      item.get('authorName', 'unknown'), item['link'])
             for channel in channels:
                 irc.say(self.bot, channel, item_text)
 
