@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from lxml import etree
 import time
 import json
+import re
 import logging
 
 
@@ -26,6 +27,7 @@ class Rss(Plugin):
         - name: Some webpage feed
           url: http://somewebpage.com/rss_feed
           frequency: 5 minutes
+          filter: 
           annouce: everywhere # default
         - name: Other webpage feed
           url: http://otherwebpage.com/rss
@@ -56,9 +58,14 @@ class Rss(Plugin):
         ''' Does a processing on feed configuration, preparing it
         to be used by the plugin.
         '''
-        # parse frequency string into datetime
         freq = f.get('frequency', '5 minutes')
         f['frequency'] = parse_frequency(freq)
+
+        filter_re = f.get('filter')
+        if filter_re:
+            f['filter'] = re.compile(filter_re)
+        else:
+            f.pop('filter', None)
 
         # fix the names of channels where feed updates shall be annouced
         announce = f.get('announce')
@@ -96,8 +103,10 @@ class Rss(Plugin):
         if next_poll > datetime.now():
             return next_poll
 
-        items = poll_rss_feed(feed['url'], state.get('last_item'))
-        self._announce_feed(name, items)
+        last_item = state.get('last_item')
+        items = poll_rss_feed(feed['url'], last_item)
+        if last_item:   # do not announce full feed
+            self._announce_feed(name, items)
 
         state['last_poll_time'] = datetime.now()
         if items:
@@ -113,7 +122,11 @@ class Rss(Plugin):
             channels = self.bot.channels
 
         for item in items:
-            item_text = "@ %s -> %s (by %s) -- %s" % (name, item['title'],
+            title = item['title']
+            if 'filter' in feed and not feed['filter'].match(title):
+                continue
+
+            item_text = "@ %s -> %s (by %s) -- %s" % (name, title,
                                                       item.get('authorName', 'unknown'), item['link'])
             for channel in channels:
                 irc.say(self.bot, channel, item_text)
