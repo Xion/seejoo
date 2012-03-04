@@ -113,7 +113,7 @@ class Config(object):
 
         _, extension = os.path.splitext(filename)
         if len(extension) <= 1:
-            logging.error("Filename '%'s has no extension to deduce parser", filename)
+            logging.error("Filename '%'s has no extension to deduce parser from", filename)
             return
 
         try:

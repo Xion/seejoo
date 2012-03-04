@@ -25,9 +25,9 @@ import re
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 
 class Bot(IRCClient):
-    ''' Main class of the bot, which is obviouslyu an IRC client. '''
+    ''' Main class of the bot, which is obviously an IRC client. '''
     versionName = 'seejoo'
-    versionNum = '1.0'
+    versionNum = '1.1'
     versionEnv = os.name
     
     def __init__(self, *args, **kwargs):
@@ -35,41 +35,25 @@ class Bot(IRCClient):
         self.nickname = config.nickname
         self.channels = set()
         
-        for cmd, doc in ext.BOT_COMMANDS.iteritems():
-            func = functools.partial(self._handle_command, cmd)
-            func.__doc__ = doc
-            ext.register_command(cmd, func)
-            
-        self._import_commands()
+        self._register_meta_commands()    
+        import seejoo.commands  # no longer dynamic
+
         self._import_plugins()
         self._init_plugins()
 
         # schedule a task to be ran every second
         tick_task = task.LoopingCall(self.tick)
         tick_task.start(1.0)
-    
-    def _import_commands(self):
-        ''' Imports commands listed in config.commands.
-        @return: Number of command modules imported
+
+    def _register_meta_commands(self):
+        ''' Registers the "meta" commands,
+        i.e. those handled by the bot itself.
         '''
-        if not config.commands:
-            logging.info("No commands to import")
-            return 0
-        
-        imported = 0
-        for c in config.commands:
-            try:
-                __import__(c, globals(), level = 0)
-                logging.debug("Command module '%s' imported successfully.", c)
-                imported += 1
-            except ImportError:
-                logging.warning("Plugin '%s' could not be found.", c)
-            except Exception, e:
-                logging.warning("Could not import command module '%s' (%s: %s).", c, type(e).__name__, e)
-                
-        logging.info("Imported %s command module(s)", imported)
-        return imported
-        
+        for cmd, doc in ext.BOT_COMMANDS.iteritems():
+            func = functools.partial(self._handle_command, cmd)
+            func.__doc__ = doc
+            ext.register_command(cmd, func)
+    
     def _import_plugins(self):
         ''' Imports plugins listed in config.plugins.
         @return Number of plugins imported
@@ -85,9 +69,11 @@ class Bot(IRCClient):
                 logging.debug("Plugin '%s' imported successfully.", p)
                 imported += 1
             except ImportError:
-                logging.warning("Plugin '%s' could not be found.", p, exc_info=True)
+                logging.warning("Plugin '%s' could not be found.",
+                                p, exc_info=True)
             except Exception, e:
-                logging.warning("Could not import plugin '%s' (%s: %s).", p, type(e).__name__, e)
+                logging.warning("Could not import plugin '%s' (%s: %s).",
+                                p, type(e).__name__, e)
         
         logging.info("Imported %s plugin(s)", imported)        
         return imported
