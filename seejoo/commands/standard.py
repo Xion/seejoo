@@ -7,9 +7,22 @@ Standard useful commands, such as evaluation of expressions.
 '''
 from multiprocessing import Process, Pipe
 from seejoo.ext import command
-import math
+import math, random
 import os
+import unicodedata
 
+
+@command('rot13')
+def rot13(text):
+    ''' Applies the ROT-13 transformation to given text,
+    stripping it from all accent characters first.
+    Input is assumed to be in UTF-8.
+    '''
+    unicode_text = unicode(text, 'utf8', 'ignore')
+    nfd_text = unicodedata.normalize('NFD', unicode_text)
+    bare_text = ''.join(c for c in nfd_text
+                        if not unicodedata.combining(c))
+    return bare_text.encode('rot13', 'ignore')
 
 
 ###############################################################################
@@ -31,7 +44,9 @@ def _eval_worker(pipe):
     '''
     # Construct a (relatively) safe dictionary of globals
     # to be used by evaluated expressions
-    g = math.__dict__.copy()
+    g = {}
+    g.update(math.__dict__)
+    g.update(random.__dict__)
     g['__builtins__'] = __builtins__.copy()
     for func in FORBIDDEN_BUILTINS:
         if func in g['__builtins__']:
