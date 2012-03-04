@@ -26,13 +26,13 @@ root access, you can use [virtualenv][venv] to create a personal copy of Python 
 
 Running
 -
-<code>seejoo.py</code> is the startup that can be invoked directly:
+Starting the bot as a simple as running:
 
-    $ ./seejoo.py
+    $ seejoo
 
 However, you will likely want to customize the bot by providing a YAML configuration file:
 
-    $ ./seejoo.py --config seejoo.yaml
+    $ seejoo --config seejoo.yaml
 
 See the attached *example_config.yaml* for supported config parameters.
 
