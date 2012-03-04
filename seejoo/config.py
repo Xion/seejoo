@@ -76,8 +76,9 @@ class Config(object):
         (options, _) = op.parse_args()
         if options.config_file:
             try:    self.load_from_file(options.config_file)
-            except Exception:
-                logging.error("Could not read specified config file %s", options.config_file)
+            except Exception, e:
+                logging.error("Could not read specified config file '%s' (%s: %s)",
+                              options.config_file, type(e).__name__, e)
 
         # Remember the rest of options
         for opt in ['nickname', 'server', 'port', 'channels']:
@@ -89,7 +90,7 @@ class Config(object):
         ''' Loads configuration from given file.
         @param filename: Config file. It must be in parseable format, e.g. JSON.
         '''
-        if not os.path.is_file(filename):
+        if not os.path.isfile(filename):
             logging.error("Config file '%s' does not exist or is not a file")
             return
 
