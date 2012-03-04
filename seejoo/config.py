@@ -9,6 +9,7 @@ from command line and/or YAML file.
 from optparse import OptionGroup, OptionParser # Not argparse since we target Python 2.6 as well
 import logging
 import collections
+import os
 
 
 ###############################################################################
@@ -84,29 +85,57 @@ class Config(object):
             if val: setattr(self, opt, val)
         
         
-    def load_from_file(self, file):
-        ''' Loads configuration from the specified YAML file.
-        @param file: Name of the YAML file to load configuration from.
+    def load_from_file(self, filename):
+        ''' Loads configuration from given file.
+        @param filename: Config file. It must be in parseable format, e.g. JSON.
         '''
+        if not os.path.is_file(filename):
+            logging.error("Config file '%s' does not exist or is not a file")
+            return
+
+        parser = self.deduce_parser(filename)
+        if not parser:
+            logging.error("Unknown format of config file")
+            return
+
+        with open(filename) as cfg_file:
+            cfg = parser.load(cfg_file)
+            self.load(cfg)
+
+    def deduce_parser(self, filename):
+        ''' Infers the appropriate parser (object with load/loads/dump/dumps methods)
+        that can be used to parse the file of given name.
+        @return: Inferred parser object or None
+        '''
+        if not filename:
+            logging.error("No filename provided to deduce parser")
+            return
+
+        _, extension = os.path.splitext(filename)
+        if len(extension) <= 1:
+            logging.error("Filename '%'s has no extension to deduce parser", filename)
+            return
+
         try:
-            import yaml
-            file = open(file)
-            cfg = yaml.load(file)
-            
-            self.nickname = cfg.get("nickname", self.nickname)
-            self.server = cfg.get("server", self.server)
-            self.port = cfg.get("port", self.port)
-            self.channels = cfg.get("channels", self.channels)
-            self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
-            self.commands = cfg.get("commands", self.commands)
-            self.plugins = self.load_plugins(cfg)
-            
-        except Exception, e:
-            logging.error("Could not load configuration from '%s':", file)
-            try:    raise e
-            except KeyError, e:     logging.error("Invalid file contents.")
-            except IOError:         logging.error("File not found.")
-            except ImportError:     logging.error("PyYAML library not found.")
+            parser_name = extension[1:]
+            parser = __import__(parser_name, globals(), locals())
+        except ImportError:
+            logging.error("Could not import parser module '%s'", parser_name)
+            return
+
+        return parser
+
+    def load(self, cfg):
+        ''' Loads configuration from specified dictionary.
+        @param cfg: Dictionary which is a result of parsing a config file
+        '''
+        self.nickname = cfg.get("nickname", self.nickname)
+        self.server = cfg.get("server", self.server)
+        self.port = cfg.get("port", self.port)
+        self.channels = cfg.get("channels", self.channels)
+        self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
+        self.commands = cfg.get("commands", self.commands)
+        self.plugins = self.load_plugins(cfg)
 
     def load_plugins(self, cfg):
         ''' Processes the 'plugins' section of configuration file, if present.
@@ -122,7 +151,8 @@ class Config(object):
             if isinstance(plugin, collections.Mapping):
                 plugin_module = plugin.get('module')
                 if not plugin_module:
-                    logging.warning("Invalid entry in 'plugins' section of config file: %s", plugin)
+                    logging.warning("Invalid config entry in 'plugins' section: %s",
+                                    plugin)
                     continue
                 plugin_config = plugin.get('config')
             else:

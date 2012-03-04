@@ -32,7 +32,7 @@ setup(name = "seejoo",
                      'Topic :: Utilities',
                      ],
       
-      install_requires = ['twisted', 'pyyaml', 'lxml'],
+      install_requires = ['twisted', 'lxml'],
       
       packages = find_packages(exclude = ['tests']),
       entry_points = {'console_scripts': ['seejoo=seejoo.main:main']},
