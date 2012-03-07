@@ -2,6 +2,7 @@
 seejoo.log
 .project
 .pydevproject
+.ropeproject
 *.sublime-*
 dist
 build
