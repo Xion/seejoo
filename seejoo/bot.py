@@ -5,7 +5,7 @@ Created on 05-12-2010
 
 Module containing the Bot class, derived from IRCClient.
 '''
-from seejoo import ext, commands #@UnusedImport
+from seejoo import ext
 from seejoo.config import config
 from seejoo.util import irc
 from seejoo.util.strings import normalize_whitespace
@@ -36,7 +36,7 @@ class Bot(IRCClient):
         self.channels = set()
         
         self._register_meta_commands()    
-        import seejoo.commands  # no longer dynamic
+        import seejoo.commands  # pyflakes-ignore
 
         self._import_plugins()
         self._init_plugins()
