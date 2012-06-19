@@ -92,14 +92,17 @@ def evaluate_expression(exp):
     '''
     Evaluates given expression.
     '''    
-    if not exp:         return "No expression supplied."
+    if not exp:
+        return "No expression supplied."
     exp = str(exp)
     
     # Setup evaluation process if it's not present
     global eval_process, eval_pipe_parent, eval_pipe_child
     if not eval_process:
         eval_pipe_parent, eval_pipe_child = Pipe()
-        eval_process = Process(name = "seejoo_eval", target = _eval_worker, args = (eval_pipe_child,))
+        eval_process = Process(name = "seejoo_eval",
+                               target = _eval_worker,
+                               args = (eval_pipe_child,))
         eval_process.daemon = True
         eval_process.start()
     
@@ -109,9 +112,9 @@ def evaluate_expression(exp):
         res = str(eval_pipe_parent.recv())
         res = filter(lambda x: ord(x) >= 32, res)   # Sanitize result
         return res        
-    else:
-        # Evaluation timed out; kill the process and return error
-        os.kill(eval_process.pid, 9)
-        os.waitpid(eval_process.pid, os.WUNTRACED)
-        eval_process = None
-        return "Operation timed out."
+
+    # Evaluation timed out; kill the process and return error
+    os.kill(eval_process.pid, 9)
+    os.waitpid(eval_process.pid, os.WUNTRACED)
+    eval_process = None
+    return "Operation timed out."

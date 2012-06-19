@@ -36,7 +36,7 @@ class Bot(IRCClient):
         self.channels = set()
         
         self._register_meta_commands()    
-        import seejoo.commands  # pyflakes-ignore
+        import seejoo.commands  # 
 
         self._import_plugins()
         self._init_plugins()
@@ -146,8 +146,9 @@ class Bot(IRCClient):
             else:
                 is_command = True   # if no prefix is defined, everything is a command
         
-        logging.info ("[%s] <%s/%s> %s", "COMMAND" if is_command else "MESSAGE",
-                       user, channel if not is_priv else '__priv__', message)
+        logging.info ("[%s] <%s/%s> %s",
+                      "COMMAND" if is_command else "MESSAGE",
+                      user, channel if not is_priv else '__priv__', message)
                        
         if is_command:
             resp = self._command(user, message)

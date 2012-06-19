@@ -20,9 +20,10 @@ class Chuck(Plugin):
         
         url = JOKES_URL
         if args:
-            names = args.split(" ", 1)
-            url_params = { 'firstName': names[0],
-                           'lastName': names[1] if len(names) > 1 else '' }
+            names = args.split(None, 1)
+            url_params = {'firstName': names[0]}
+            if len(names) > 1:
+                url_params['lastName'] = names[1]
             url += '?' +  urlencode(url_params)
             
         jsonData = download(url)

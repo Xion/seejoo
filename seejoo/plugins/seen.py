@@ -18,7 +18,8 @@ def seen_plugin(bot, event, **kwargs):
 	''' Main function. Plugin is implemented as a function because
 	it eliminates some redundancy in recording user's activity.
 	'''
-	if event in ['init', 'tick']:	return
+	if event in ['init', 'tick']:
+		return
 	if event == 'command' and str(kwargs['cmd']) == 'seen':
 		return handle_seen_command(kwargs['args'])
 	track_activity(event, **kwargs)
@@ -44,13 +45,15 @@ def handle_seen_command(user):
 	with open(user_file, 'r') as f:
 		activity = json.load(f)
 
-	channel, last = max(activity.iteritems(), key = lambda (_, a): a['timestamp'])
+	channel, last = max(activity.iteritems(),
+						key = lambda (_, a): a['timestamp'])
 
 	activity_time = datetime.fromtimestamp(last['timestamp'])
 	formatted_time = activity_time.strftime("%Y-%m-%d %H:%M:%S")
 	channel_part = " on %s" % channel if channel != GLOBAL_CHANNEL else ""
 
-	return "%s was last seen%s at %s: %s" % (user, channel_part, formatted_time, last['text'])
+	return "%s was last seen%s at %s: %s" % (
+		user, channel_part, formatted_time, last['text'])
 
 
 ###############################################################################
@@ -86,15 +89,21 @@ def format_activity_text(event, **kwargs):
 	format_mode_args = lambda args: " " + " ".join(args) if mode_has_args(args) else ""
 
 	event_formatters = {
-		'join': lambda d: "* %s joins %s." % (d['user'], d['channel']),
-		'part': lambda d: "* %s leaves  %s." % (d['user'], d['channel']),
-		'kick': lambda d: "* %s has been kicked from %s by %s." % (d['kickee'], d['channel'], d['kicker']),
-		'message': lambda d: "<%s> %s" % (d['user'], d['message']),
-		'nick': lambda d: "* %s changes nick to %s." % (d['old'], d['new']),
+		'join': lambda d: "* %s joins %s." % (
+			d['user'], d['channel']),
+		'part': lambda d: "* %s leaves  %s." % (
+			d['user'], d['channel']),
+		'kick': lambda d: "* %s has been kicked from %s by %s." % (
+			d['kickee'], d['channel'], d['kicker']),
+		'message': lambda d: "<%s> %s" % (
+			d['user'], d['message']),
+		'nick': lambda d: "* %s changes nick to %s." % (
+			d['old'], d['new']),
 		'mode': lambda d: "* %s sets mode %s%s%s" % (
-			d['user'], "+" if d['set'] else "-", d['modes'], format_mode_args(d['args'])
-		),
-		'topic': lambda d: "* %s sets topic of %s to '%s'." % (d['user'], d['channel'], d['topic']),
+			d['user'], "+" if d['set'] else "-",
+			d['modes'], format_mode_args(d['args'])),
+		'topic': lambda d: "* %s sets topic of %s to '%s'." % (
+			d['user'], d['channel'], d['topic']),
 	}
 
 	fmt = event_formatters.get(event)

@@ -5,7 +5,6 @@ Created on 12-12-2010
 
 Memo plugin module.
 '''
-import re
 import json
 import urllib
 import fnmatch
@@ -21,7 +20,10 @@ class Memos(Plugin):
     '''
     Memo plugin. Allows users to leave messages to be delivered to others.
     '''
-    commands = { 'msg': 'Leave a message for particular user, e.g.: #cmd# some_one You owe me $10!' }
+    commands = {
+        'msg': ("Leave a message for particular user, "
+                "e.g.: #cmd# some_one You owe me $10!"),
+    }
     
     def __init__(self):
         '''
@@ -42,30 +44,39 @@ class Memos(Plugin):
         '''
         Get file name for storing messages to given recipient.
         '''
-        return os.path.join(self.dir, urllib.quote(recipient, '') + ".json")
+        filename = urllib.quote(recipient, '')
+        return os.path.join(self.dir, filename + ".json")
             
     def _store_message(self, sender, recipient, message):
         '''
         Stores a message for to given recipient, sent by given sender.
         '''
-        item = { 'from': sender, 'message': message, 'timestamp': time.time() }
+        item = {
+            'from': sender,
+            'message': message,
+            'timestamp': time.time()
+        }
         
         # Read the current messages to this recipient
         file = self._get_filename(recipient)
         if os.path.exists(file):
-            with open(file) as f:   items = json.load(f)
-        else:   items = []
+            with open(file) as f:
+                items = json.load(f)
+        else:
+            items = []
         
         # Add this one and save
         items.append(item)
-        with open(file, 'w') as f:  json.dump(items, f)
+        with open(file, 'w') as f:
+            json.dump(items, f)
         
         
     def message(self, bot, channel, user, message, type):
         '''
         Called when bot "hears" a message.
         '''
-        if not channel: return          # Only interested in channel messages
+        if not channel:
+            return          # Only interested in channel messages
         nick = irc.get_nick(user)
         
         # Collect messages pertaining to this user
@@ -85,12 +96,14 @@ class Memos(Plugin):
             msg_time = datetime.fromtimestamp(message['timestamp'])
             msg_time = msg_time.strftime("%Y-%m-%d %H:%M:%S")
             
-            msg = "%s <%s> %s: %s" % (msg_time, message['from'], nick, message['message'])
+            msg = "%s <%s> %s: %s" % (
+                msg_time, message['from'], nick, message['message'])
             msgs.append(msg)
         irc.say(bot, channel, msgs)
         
         # Delete files
-        for file in files:  os.unlink(file)
+        for file in files:
+            os.unlink(file)
         
         # Log delivery
         log_file = os.path.join(self.dir, "delivery.log")
@@ -102,17 +115,21 @@ class Memos(Plugin):
         '''
         Called when user issues a command.
         '''
-        if cmd != 'msg':    return
+        if cmd != 'msg':
+            return
         nick = irc.get_nick(user)
         
         # Forbid sending messages to the bot itself
-        if nick == bot.nickname:    return "I'm here, y'know." 
+        if nick == bot.nickname:
+            return "I'm here, y'know." 
         
         # Get recipient and message from arguments
         try:
-            recipient, message = re.split(r"\s+", args, 1)
-        except ValueError:  message = None
-        if not message: return "Message shall not be empty."
+            recipient, message = args.split(None, 1)
+        except ValueError:
+            message = None
+        if not message:
+            return "Message shall not be empty."
         
         # Store it
         self._store_message(nick, recipient, message)

@@ -76,7 +76,8 @@ class Rss(Plugin):
 
     def tick(self, bot):
         ''' Called every second. Checks the feeds for new items. '''
-        if not self.state:  return
+        if not self.state:
+            return
 
         now = datetime.now()
         if self.next_poll > now:
@@ -85,10 +86,10 @@ class Rss(Plugin):
         global_next_poll = None
         for st in self.state.iteritems():
             next_poll = self._poll_and_update_feed(*st)
-            global_next_poll = (next_poll if not global_next_poll
-                                else min(next_poll, global_next_poll))
+            global_next_poll = (min(next_poll, global_next_poll)
+                                if global_next_poll else next_poll)
         if global_next_poll:
-                self.next_poll = global_next_poll
+            self.next_poll = global_next_poll
 
 
     def _poll_and_update_feed(self, name, state):

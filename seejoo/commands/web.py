@@ -26,7 +26,8 @@ def get_recent_rss_items(url):
     Retrieves the few most recent items from the given RSS feed.
     '''
     rss = download(url)
-    if not rss: return "Could not retrieve RSS feed."
+    if not rss:
+        return "Could not retrieve RSS feed."
     rss_xml = ElementTree.ElementTree(ElementTree.fromstring(rss))
     
     # Get title of channel and titles of items
@@ -113,7 +114,7 @@ def googlefight(queries):
         results.append((query, count or 0))
     
     # Format results
-    results = sorted(results, key = lambda r: r[1], reverse = True)
+    results = sorted(results, key = lambda (_, count): count, reverse = True)
     results_str = ["%i. %s (%s)" % (place, r[0], r[1]) for place, r in enumerate(results, 1)]
     
     return " ".join(results_str)
@@ -128,7 +129,8 @@ def get_wikipage_api_url(title, lang = 'en', format = 'json'):
     @note: What is actually returned is the list of most recent revisions
     with a limit of 1. 
     '''
-    if not title:   return None
+    if not title:
+        return None
     url = "http://%s.wikipedia.org/w/api.php?action=query&prop=revisions&rvlimit=1&rvprop=content&format=%s&titles=%s"
     return url % (lang, format, urllib2.quote(title))
 
@@ -138,7 +140,8 @@ def get_wikipage_content(title):
     '''
     url = get_wikipage_api_url(title)
     resp = download(url)
-    if not resp:    return None
+    if not resp:
+        return None
    
     resp = json.loads(resp)
     try:
@@ -187,8 +190,10 @@ def get_definition_from_wiki(wiki, chars):
     
     # Strip unnecessary markup
     text = re.sub(r"\{\{.*?\}\}", "", text)   # Other remaining markup -- requires refinement to support {{convert...}}
-    text = re.sub(r"\[\[(.[^\]]*?\|)?(?P<link>.*?)\]\]", lambda m: m.group("link"), text)     # Links
-    text = re.sub(r"\'{3}(.*?)\'{3}", lambda m: '"%s"' % m.group(1), text)                    # Quotes
+    text = re.sub(r"\[\[(.[^\]]*?\|)?(?P<link>.*?)\]\]",
+                  lambda m: m.group("link"), text)     # Links
+    text = re.sub(r"\'{3}(.*?)\'{3}",
+                  lambda m: '"%s"' % m.group(1), text)                    # Quotes
     
     text = re.sub(r"\s+\(\W*?\)", "", text)
 
@@ -258,7 +263,8 @@ def urban_dictionary(term):
     
     url = "http://www.urbandictionary.com/define.php?term=%s" % urllib2.quote(term)
     ud_site = download(url)
-    if not ud_site: return "Could not retrieve definition of '%s'." % term
+    if not ud_site:
+        return "Could not retrieve definition of '%s'." % term
     
     # Look for definition
     m = UD_DEF_DIV.search(ud_site)

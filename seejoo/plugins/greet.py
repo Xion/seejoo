@@ -17,7 +17,9 @@ class Greetings(Plugin):
     '''
     Greetings plugin class.
     '''
-    commands = { 'greet': 'Sets a greeting that bot will say when you enter the channel' }
+    commands = {
+        'greet': 'Sets a greeting that bot will say when you enter the channel'
+    }
     
     def __init__(self):
         '''
@@ -50,7 +52,8 @@ class Greetings(Plugin):
         '''
         # Retrieve the nick
         nick = irc.get_nick(user)
-        if nick == bot.nickname:    return  # Only interested in others joining
+        if nick == bot.nickname:
+            return  # Only interested in others joining
         
         # Check if we have greeting and serve it
         greet = self.greets.get(nick)
@@ -60,7 +63,8 @@ class Greetings(Plugin):
         '''
         Called when user issues a command.
         '''
-        if cmd != 'greet': return  # Only interested in this command
+        if cmd != 'greet':
+            return  # Only interested in this command
         
         # Remember the greeting
         nick = irc.get_nick(user)
