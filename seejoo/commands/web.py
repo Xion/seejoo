@@ -8,11 +8,13 @@ Commands used to access various web services such as Google or Wikipedia.
 import json
 import re
 import urllib2
+from xml.etree import ElementTree
+
+from bs4 import BeautifulSoup
 
 from seejoo.ext import command
 from seejoo.util.common import download
 from seejoo.util.strings import strip_html
-from xml.etree import ElementTree
 
 
 MAX_QUERY_RESULTS = 3
@@ -298,20 +300,6 @@ def urban_dictionary(term):
 
 # Weather
 
-WEATHER_DIV = re.compile(r'''
-    \<\s* div \s+ class="large" \s* \>    # Opening tag
-        (?P<degrees>[+-]?\d+)             # Degrees
-        .*(\s*\<br\s*/?\>\s*)?
-        (?P<comment>.*)                   # Comment
-    \</div\s*\>                           # Closing tag
-    ''', re.IGNORECASE | re.VERBOSE)
-WEATHER_PLACE_DIV = re.compile(r'''
-    \<\s* div \s* \> \s* \< \s* span \s+ class="small" \s* \>    # Opening tag
-        (?P<place>[\w\s,]+)                                      # Place
-    \</span \s* \> \s* \</div \s*\>                              # Closing tag
-    ''', re.IGNORECASE | re.VERBOSE)
-
-
 @command('f')
 def weather_forecast(place):
     '''
@@ -327,24 +315,14 @@ def weather_forecast(place):
     if not fw_site:
         return "Could not retrieve weather information."
 
-    # Look up for the contents of <div class="large">
-    m = WEATHER_DIV.search(fw_site)
-    if m:
-        # Get the contents
-        degrees = m.groupdict().get("degrees")
-        comment = m.groupdict().get("comment")
-        if degrees:
-            # Try to fetch the actual place
-            m = WEATHER_PLACE_DIV.search(fw_site)
-            if m:
-                place = m.groupdict().get("place", place)
+    soup = BeautifulSoup(fw_site)
 
-            res = "%s: %s^C" % (place, degrees)
-            if comment:
-                comment = str(comment).lower()
-                comment = re.sub(r"\<br\s*/?\>", " ", comment)
-                comment = re.sub(r"\sfucking", "", comment)
-                res += " (%s)" % comment
-            return res
+    try:
+        degrees = soup.find('span', {'class': 'temperature'}).text
+        remark = soup.find('p', {'class': 'remark'}).text
+        flavor = soup.find('p', {'class': 'flavor'}).text
+    except AttributeError:
+        return "Could not find weather information."
 
-    return "Could not find weather information."
+    remark = re.sub(r"\sfucking", "", remark.lower())  # behave!
+    return "%s: %s^C -- %s [%s]" % (place, degrees, remark, flavor)
