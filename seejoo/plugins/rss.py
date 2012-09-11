@@ -2,19 +2,19 @@
 Plugin for occasional polling of one or more RSS feeds.
 @author Karol Kuczmarski
 '''
-from seejoo.ext import plugin, Plugin
-from seejoo.util import irc
-from datetime import datetime, timedelta
-from lxml import etree
-import time
-import json
 import re
 import logging
+from datetime import datetime, timedelta
+
+from lxml import etree
+
+from seejoo.ext import plugin, Plugin
+from seejoo.util import irc
 
 
 @plugin
 class Rss(Plugin):
-    ''' RSS polling plugin. 
+    ''' RSS polling plugin.
 
     Plugin should be configured with a list of RSS feeds that it should
     be polling. Here's an example of such configuration, which probably
@@ -124,8 +124,8 @@ class Rss(Plugin):
             if 'filter' in feed and not feed['filter'].match(title):
                 continue
 
-            item_text = "@ %s -> %s (by %s) -- %s" % (name, title,
-                                                      item.get('authorName', 'unknown'), item['link'])
+            item_text = "@ %s -> %s (by %s) -- %s" % (
+                name, title, item.get('authorName', 'unknown'), item['link'])
             for channel in channels:
                 irc.say(self.bot, channel, item_text)
 

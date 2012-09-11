@@ -15,7 +15,7 @@ JOKES_URL = 'http://api.icndb.com/jokes/random'
 class Chuck(Plugin):
     commands = { 'j': 'Says facts about Chuck Norris.' }
 
-    def command(self, bot, user, cmd, args):
+    def command(self, bot, channel, user, cmd, args):
         if cmd != 'j':    return
         
         url = JOKES_URL

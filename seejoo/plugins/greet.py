@@ -59,7 +59,7 @@ class Greetings(Plugin):
         greet = self.greets.get(nick)
         if greet:   irc.say(bot, channel, greet)
             
-    def command(self, bot, user, cmd, args):
+    def command(self, bot, channel, user, cmd, args):
         '''
         Called when user issues a command.
         '''

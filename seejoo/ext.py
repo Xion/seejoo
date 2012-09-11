@@ -129,7 +129,7 @@ class Plugin(object):
     def nick(self, bot, old, new):                          pass
     def mode(self, bot, channel, user, set, modes, args):   pass
     def topic(self, bot, channel, topic, user):             pass
-    def command(self, bot, user, cmd, args):                pass
+    def command(self, bot, channel, user, cmd, args):       pass
     def tick(self, bot):                                    pass
     
     def __call__(self, bot, event, **kwargs):

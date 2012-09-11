@@ -2,6 +2,7 @@ plugins:
 - seejoo.plugins.memo
 - seejoo.plugins.chuck
 - seejoo.plugins.seen
+- seejoo.plugins.urlspy
 # - module: seejoo.plugins.test
 #   config:
 #     foo: bar

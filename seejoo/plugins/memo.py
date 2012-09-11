@@ -111,7 +111,7 @@ class Memos(Plugin):
             log.writelines(m + "\n" for m in msgs)
             
         
-    def command(self, bot, user, cmd, args):
+    def command(self, bot, channel, user, cmd, args):
         '''
         Called when user issues a command.
         '''
