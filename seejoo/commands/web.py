@@ -231,7 +231,7 @@ def wikipedia_definition(term):
 
     page = get_wikipage_content(term)
     if not page:
-        return "Could not connect to Wikipedia."
+        return "Could not find the term in Wikipedia."
 
     wiki_def = get_definition_from_wiki(page, 200)
     if not wiki_def:

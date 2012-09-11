@@ -27,7 +27,7 @@ class Rss(Plugin):
         - name: Some webpage feed
           url: http://somewebpage.com/rss_feed
           frequency: 5 minutes
-          filter: 
+          filter:
           annouce: everywhere # default
         - name: Other webpage feed
           url: http://otherwebpage.com/rss
@@ -39,7 +39,7 @@ class Rss(Plugin):
     def __init__(self):
         self.feeds = {}
         self.state = None
-        self.next_poll = datetime.now() # will be in the past for the next tick()
+        self.next_poll = datetime.now()  # will be in the past for the next tick()
 
     def init(self, bot, config):
         ''' Remembers the configuration of the plugin. '''
@@ -70,9 +70,8 @@ class Rss(Plugin):
         # fix the names of channels where feed updates shall be annouced
         announce = f.get('announce')
         if announce and not isinstance(announce, basestring):
-            f['announce'] = ['#' + chan for chan in announce
-                             if not chan.startswith('#')]
-
+            f['announce'] = [chan if chan.startswith('#') else '#' + chan
+                             for chan in announce]
 
     def tick(self, bot):
         ''' Called every second. Checks the feeds for new items. '''
@@ -90,7 +89,6 @@ class Rss(Plugin):
                                 if global_next_poll else next_poll)
         if global_next_poll:
             self.next_poll = global_next_poll
-
 
     def _poll_and_update_feed(self, name, state):
         ''' Polls the items from feed of given name and updates its state.
@@ -113,7 +111,6 @@ class Rss(Plugin):
         if items:
             state['last_item'] = items[0]['guid']
         return datetime.now() + frequency
-
 
     def _announce_feed(self, name, items):
         ''' Announces polled feed items to all target channels. '''
@@ -148,9 +145,9 @@ def parse_frequency(frequency):
         if not unit.endswith('s'):
             unit += 's'
         return timedelta(**{unit: float(count)})
-    except (ValueError, TypeError), _:
+    except (ValueError, TypeError):
         return timedelta()
-    
+
 
 def poll_rss_feed(feed_url, last_item=None):
     ''' Polls an RSS feed, retrieving all new items, up to but excluding
@@ -168,6 +165,7 @@ def poll_rss_feed(feed_url, last_item=None):
 
     return rss_items
 
+
 def get_rss_items(url):
     ''' Retrieves RSS items from given URL.
     @note: All <channel> elements are merged into flat list.
@@ -175,10 +173,10 @@ def get_rss_items(url):
     '''
     try:
         rss = etree.parse(url)
-    except Exception, e:
+    except Exception:
         logging.exception("Error while downloading feed %s", url)
         return []
-    
+
     # parse the RSS content
     res = []
     for channel in rss.getroot().iter('channel'):
