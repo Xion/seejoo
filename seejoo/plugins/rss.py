@@ -130,8 +130,11 @@ class Rss(Plugin):
             if 'filter' in feed and not feed['filter'].match(title):
                 continue
 
-            item_text = "@ %s -> %s (by %s) -- %s" % (
-                name, title, item.get('authorName', 'unknown'), item['link'])
+            # don't display '(by X)' if there's no author
+            author = item.get('authorName')
+            by = " (by %s)" % author if author else ""
+
+            item_text = "@ %s -> %s%s -- %s" % (name, title, by, item['link'])
             for channel in channels:
                 irc.say(self.bot, channel, item_text)
 
