@@ -1,6 +1,7 @@
 *.*~
 *.pyc
 seejoo.log
+config.yaml
 .project
 .pydevproject
 .ropeproject
