@@ -1,4 +1,7 @@
 twisted
 
+python-dateutil
+pytz
+
 lxml
 beautifulsoup4
