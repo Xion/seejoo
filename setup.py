@@ -33,7 +33,7 @@ setup(
         'Topic :: Utilities',
     ],
 
-    install_requires=['twisted', 'lxml', 'beautifulsoup4'],
+    install_requires=open('requirements.txt').readlines(),
 
     packages=find_packages(exclude=['tests']),
     entry_points={

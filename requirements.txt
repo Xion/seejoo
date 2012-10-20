@@ -1,0 +1,4 @@
+twisted
+
+lxml
+beautifulsoup4
