@@ -45,7 +45,7 @@ class Rss(Plugin):
         self.next_poll = datetime.utcnow()  # will be in the past for the next tick()
 
     def init(self, bot, config):
-        """ Remembers the configuration of the plugin. """
+        """ Remembers configuration of the plugin. """
         self.bot = bot
 
         feeds = config.get('feeds') if config else None
@@ -72,7 +72,7 @@ class Rss(Plugin):
 
         # fix the names of channels where feed updates shall be annouced
         announce = f.get('announce')
-        if announce and not isinstance(announce, basestring):
+        if announce and not isinstance(announce, basestring):  # > 1 channel
             f['announce'] = [chan if chan.startswith('#') else '#' + chan
                              for chan in announce]
 
@@ -81,8 +81,7 @@ class Rss(Plugin):
         if not self.state:
             return
 
-        now = datetime.utcnow()
-        if self.next_poll > now:
+        if self.next_poll > datetime.utcnow():
             return
 
         global_next_poll = None
@@ -98,25 +97,22 @@ class Rss(Plugin):
         :return: Time of the next scheduled poll for this feed
         """
         feed = self.feeds[name]
-        last_poll = state.get('last_poll_time', datetime.min)
-        frequency = feed['frequency']
-
-        next_poll = last_poll + frequency
-        if next_poll > datetime.utcnow():
-            return next_poll
 
         last_item = state.get('last_item')
+        min_pub_date = state.get('last_poll_time') or datetime.utcnow()
+
         items = poll_rss_feed(feed['url'], until=lambda item: (
             item.get('guid') == last_item or
-            item.get('pubDate', datetime.min) < last_poll)
+            item.get('pubDate', datetime.min) < min_pub_date)
         )
-        if last_item:   # do not announce full feed
+        if last_item:  # do not announce full feed
             self._announce_feed(name, items)
 
         state['last_poll_time'] = datetime.utcnow()
         if items:
             state['last_item'] = items[0]['guid']
-        return datetime.utcnow() + frequency
+
+        return datetime.utcnow() + feed['frequency']
 
     def _announce_feed(self, name, items):
         """ Announces polled feed items to all target channels. """
@@ -196,12 +192,13 @@ def get_rss_items(url):
                             for elem in item.iter(tag=etree.Element)
                             if elem.tag != 'item')
 
-            # conveniently convert pubDate to UTC
+            # conveniently convert pubDate to datetime objects,
+            # in UTC but without timezone info (simplifies things later)
             try:
                 pub_date = parse_date(rss_item['pubDate'])
                 if pub_date.tzinfo is not None:
                     pub_date = pub_date.astimezone(pytz.utc)
-                    pub_date.tzinfo = None  # making it naive simplifies things
+                    pub_date = pub_date.replace(tzinfo=None)
                 rss_item['pubDate'] = pub_date
             except (KeyError, ValueError):
                 rss_item.pop('pubDate', None)  # remove if invalid
