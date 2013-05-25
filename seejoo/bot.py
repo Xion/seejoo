@@ -335,7 +335,7 @@ def run():
 
 def resolve_ipv6_addr(host, port):
     """Resolve given hostname as IPv6 address."""
-    addrinfos = socket.getaddrinfo(host, port, family=socket.AF_INET6)
+    addrinfos = socket.getaddrinfo(host, port, socket.AF_INET6)
     if not addrinfos:
         return
 
