@@ -21,17 +21,18 @@ class Config(object):
         self.set_defaults()
         if cfg_file:
             self.load_from_file(cfg_file)
-          
+
     def set_defaults(self):
         ''' Sets the default configuration settings. '''
         self.nickname = 'seejoo'
         self.server = 'irc.freenode.net'
         self.port = 6667
+        self.ipv6 = False
         self.channels = ['#seejoo-test']
-        
+
         self.cmd_prefix = '.'
         self.plugins = {}
-        
+
     def load_from_file(self, filename):
         ''' Loads configuration from given file.
         @param filename: Config file. It must be in parseable format, e.g. JSON.
@@ -81,6 +82,7 @@ class Config(object):
         self.nickname = cfg.get("nickname", self.nickname)
         self.server = cfg.get("server", self.server)
         self.port = cfg.get("port", self.port)
+        self.ipv6 = cfg.get("ipv6", self.ipv6)
         self.channels = cfg.get("channels", self.channels)
         self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
         self.plugins = self.load_plugins(cfg)
@@ -110,6 +112,6 @@ class Config(object):
 
         return plugins
 
-        
+
 # Config object
 config = Config()

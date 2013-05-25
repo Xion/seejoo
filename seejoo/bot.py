@@ -9,6 +9,7 @@ import functools
 import logging
 import os
 import re
+import socket
 
 from twisted.internet import reactor, task
 from twisted.internet.protocol import ReconnectingClientFactory
@@ -315,7 +316,29 @@ class BotFactory(ReconnectingClientFactory):
     protocol = Bot
 
 
+# Runner function
+
 def run():
     ''' Runs the bot, using configuration specified in config module. '''
-    reactor.connectTCP(config.server, config.port, BotFactory())
+    host, port = config.server, config.port
+
+    if config.ipv6:
+        ipv6_addr = resolve_ipv6_addr(host, port)
+        if ipv6_addr:
+            host, port = ipv6_addr
+        else:
+            logging.warning("Cannot resolve IPv6 host %s:%s", host, port)
+
+    reactor.connectTCP(host, port, BotFactory())
     reactor.run()
+
+
+def resolve_ipv6_addr(host, port):
+    """Resolve given hostname as IPv6 address."""
+    addrinfos = socket.getaddrinfo(host, port, family=socket.AF_INET6)
+    if not addrinfos:
+        return
+
+    _, _, _, _, sockaddr = addrinfos[0]
+    ipv6_addr, ipv6_port, _, _ = sockaddr
+    return ipv6_addr, ipv6_port
