@@ -15,6 +15,7 @@ from twisted.internet import reactor, task
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.words.protocols.irc import IRCClient
 
+import seejoo
 from seejoo import ext
 from seejoo.config import config
 from seejoo.util import irc
@@ -27,7 +28,7 @@ COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 class Bot(IRCClient):
     ''' Main class of the bot, which is obviously an IRC client. '''
     versionName = 'seejoo'
-    versionNum = '1.1'
+    versionNum = seejoo.__version__
     versionEnv = os.name
 
     def __init__(self, *args, **kwargs):
