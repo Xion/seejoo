@@ -116,7 +116,8 @@ class Bot(IRCClient):
             logging.debug(
                 "[CONNECT] Identifying with %s..." % config.nickserv_bot)
             irc.say(self, config.nickserv_bot,
-                    "IDENTIFY " + config.nickserv_password)
+                    "IDENTIFY " + config.nickserv_password,
+                    log=False)
 
         for chan in config.channels:
             self.join(chan)
