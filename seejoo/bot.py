@@ -112,6 +112,12 @@ class Bot(IRCClient):
         self.factory.resetDelay()
         logging.debug("[CONNECT] Connected to server")
 
+        if config.nickserv_password:
+            logging.debug(
+                "[CONNECT] Identifying with %s..." % config.nickserv_bot)
+            irc.say(self, config.nickserv_bot,
+                    "IDENTIFY " + config.nickserv_password)
+
         for chan in config.channels:
             self.join(chan)
 

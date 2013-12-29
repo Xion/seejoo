@@ -24,10 +24,14 @@ class Config(object):
 
     def set_defaults(self):
         ''' Sets the default configuration settings. '''
-        self.nickname = 'seejoo'
         self.server = 'irc.freenode.net'
         self.port = 6667
         self.ipv6 = False
+
+        self.nickname = 'seejoo'
+        self.nickserv_password = None
+        self.nickserv_bot = 'NickServ'
+
         self.channels = ['#seejoo-test']
 
         self.cmd_prefix = '.'
@@ -68,6 +72,8 @@ class Config(object):
 
         try:
             parser_name = extension[1:]
+            if parser_name == 'yml':
+                parser_name = 'yaml'
             parser = __import__(parser_name, globals(), locals())
         except ImportError:
             logging.error("Could not import parser module '%s'", parser_name)
@@ -79,11 +85,17 @@ class Config(object):
         ''' Loads configuration from specified dictionary.
         @param cfg: Dictionary which is a result of parsing a config file
         '''
-        self.nickname = cfg.get("nickname", self.nickname)
         self.server = cfg.get("server", self.server)
         self.port = cfg.get("port", self.port)
         self.ipv6 = cfg.get("ipv6", self.ipv6)
+
+        self.nickname = cfg.get("nickname", self.nickname)
+        self.nickserv_password = cfg.get("NickServ_password",
+                                         self.nickserv_password)
+        self.nickserv_bot = cfg.get("NickServ_bot_name", self.nickserv_bot)
+
         self.channels = cfg.get("channels", self.channels)
+
         self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
         self.plugins = self.load_plugins(cfg)
 
@@ -92,6 +104,9 @@ class Config(object):
         @return: Dictionary mapping names of plugin modules onto their configuration dicts
                  (or None, if no plugin-specific config has been supplied)
         '''
+        # TODO: allow for plugins_section to be dictionary,
+        # mapping plugin module names to the config options
+
         plugins_section = cfg.get('plugins', self.plugins)
         if not plugins_section:
             return {}
