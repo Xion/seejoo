@@ -13,12 +13,27 @@ import socket
 
 from twisted.internet import reactor, task
 from twisted.internet.protocol import ReconnectingClientFactory
-from twisted.words.protocols.irc import IRCClient
+from twisted.words.protocols.irc import IRCClient as _IRCClient
 
 from seejoo import ext
 from seejoo.config import config
 from seejoo.util import irc
 from seejoo.util.strings import normalize_whitespace
+
+
+# TODO(xion): extract this class to a new module ``seejoo.ext.twisted``,
+# after renaming existing ``ext`` module to something more appropriate
+class IRCClient(_IRCClient):
+    """Enhanced version of Twisted IRC client."""
+
+    def invited(self, inviter, channel):
+        """Called when I've been invited to a channel."""
+        pass
+
+    def irc_INVITE(self, prefix, params):
+        inviter = prefix.split('!')[0]
+        channel = params[0]
+        self.invited(inviter, channel)
 
 
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
@@ -113,6 +128,12 @@ class Bot(IRCClient):
 
         for chan in config.channels:
             self.join(chan)
+
+    def invited(self, inviter, channel):
+        """Method called when the bot has been invited to a channel."""
+        logging.debug("[INVITE] Invite from %s to channel %s",
+                      inviter, channel)
+        self.join(channel)
 
     def myInfo(self, servername, version, umodes, cmodes):
         ''' Method called with information about the server. '''
