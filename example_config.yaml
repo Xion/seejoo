@@ -20,6 +20,10 @@ channels:
 # that it is invited to
 join_on_invite: true
 
+# Whether bot should automatically attempt to rejoin channel
+# that it has been kicked from
+rejoin_on_kick: false
+
 
 # A prefix which should be prepended to commands said in channel;
 # dot by default. You can changr it if seejoo should coexist

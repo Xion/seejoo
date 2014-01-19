@@ -34,6 +34,7 @@ class Config(object):
 
         self.channels = ['#seejoo-test']
         self.join_on_invite = True
+        self.rejoin_on_kick = False
 
         self.cmd_prefix = '.'
         self.plugins = {}
@@ -97,6 +98,7 @@ class Config(object):
 
         self.channels = cfg.get("channels", self.channels)
         self.join_on_invite = cfg.get("join_on_invite", self.join_on_invite)
+        self.rejoin_on_kick = cfg.get("rejoin_on_kick", self.rejoin_on_kick)
 
         self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
         self.plugins = self.load_plugins(cfg)

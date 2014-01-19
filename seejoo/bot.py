@@ -315,6 +315,8 @@ class Bot(IRCClient):
                       self.nickname, channel, kicker, message)
         ext.notify(self, 'kick', channel=channel,
                    kicker=kicker, kickee=self.nickname, reason=message)
+        if config.rejoin_on_kick:
+            self.join(channel)
 
     def userKicked(self, kickee, channel, kicker, message):
         ''' Method called when other user is kicked from a channel. '''
