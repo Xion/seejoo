@@ -141,7 +141,7 @@ class Bot(IRCClient):
         """Method called when the bot has been invited to a channel."""
         logging.debug("[INVITE] Invite from %s to channel %s",
                       inviter, channel)
-        if config,join_on_invite:
+        if config.join_on_invite:
             self.join(channel)
 
     def myInfo(self, servername, version, umodes, cmodes):
