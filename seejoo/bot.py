@@ -33,7 +33,7 @@ class IRCClient(_IRCClient):
 
     def irc_INVITE(self, prefix, params):
         inviter = prefix.split('!')[0]
-        channel = params[0]
+        channel = params[1]
         self.invited(inviter, channel)
 
 
