@@ -33,6 +33,7 @@ class Config(object):
         self.nickserv_bot = 'NickServ'
 
         self.channels = ['#seejoo-test']
+        self.join_on_invite = True
 
         self.cmd_prefix = '.'
         self.plugins = {}
@@ -95,6 +96,7 @@ class Config(object):
         self.nickserv_bot = cfg.get("NickServ_bot_name", self.nickserv_bot)
 
         self.channels = cfg.get("channels", self.channels)
+        self.join_on_invite = cfg.get("join_on_invite", self.join_on_invite)
 
         self.cmd_prefix = cfg.get("command_prefix", self.cmd_prefix)
         self.plugins = self.load_plugins(cfg)
@@ -116,8 +118,9 @@ class Config(object):
             if isinstance(plugin, collections.Mapping):
                 plugin_module = plugin.get('module')
                 if not plugin_module:
-                    logging.warning("Invalid config entry in 'plugins' section: %s",
-                                    plugin)
+                    logging.warning(
+                        "Invalid config entry in 'plugins' section: %s",
+                        plugin)
                     continue
                 plugin_config = plugin.get('config')
             else:
