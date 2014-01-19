@@ -15,6 +15,7 @@ from twisted.internet import reactor, task
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.words.protocols.irc import IRCClient as _IRCClient
 
+import seejoo
 from seejoo import ext
 from seejoo.config import config
 from seejoo.util import irc
@@ -42,7 +43,7 @@ COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
 class Bot(IRCClient):
     ''' Main class of the bot, which is obviously an IRC client. '''
     versionName = 'seejoo'
-    versionNum = '1.1'
+    versionNum = seejoo.__version__
     versionEnv = os.name
 
     def __init__(self, *args, **kwargs):
@@ -125,6 +126,13 @@ class Bot(IRCClient):
         ''' Method called upon successful connection to IRC server. '''
         self.factory.resetDelay()
         logging.debug("[CONNECT] Connected to server")
+
+        if config.nickserv_password:
+            logging.debug(
+                "[CONNECT] Identifying with %s..." % config.nickserv_bot)
+            irc.say(self, config.nickserv_bot,
+                    "IDENTIFY " + config.nickserv_password,
+                    log=False)
 
         for chan in config.channels:
             self.join(chan)

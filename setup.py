@@ -8,16 +8,18 @@ Setup script for the seejoo project.
 '''
 from setuptools import setup, find_packages
 
+import seejoo
+
 
 setup(
     name="seejoo",
-    version="1.1",
+    version=seejoo.__version__,
     description='Extensible IRC bot for geek-centered channels',
     long_description=open("README.markdown").read(),
-    author='Karol "Xion" Kuczmarski',
-    author_email='karol.kuczmarski@gmail.com',
+    author=seejoo.__author__,
     url='http://github.com/Xion/seejoo',
-    license='Simplified BSD',
+    license=seejoo.__license__,
+
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: No Input/Output (Daemon)',
