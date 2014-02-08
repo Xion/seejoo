@@ -19,10 +19,10 @@ def seen_plugin(bot, event, **kwargs):
     ''' Main function. Plugin is implemented as a function because
     it eliminates some redundancy in recording user's activity.
     '''
-    if event in ['init', 'tick']:
+    if event in ('init', 'tick'):
         return
     if event == 'command' and str(kwargs['cmd']) == 'seen':
-        return handle_seen_command(kwargs['args'])
+        return handle_seen_command(kwargs['args'].strip())
     track_activity(event, **kwargs)
 
 seen_plugin.commands = {'seen': "Reports last time when user was seen"}
@@ -81,7 +81,7 @@ def track_activity(event, **kwargs):
     channel = kwargs.get('channel')
     for user in users:
         record_user_activity(user, channel, text)
-    
+
 
 def format_activity_text(event, **kwargs):
     ''' Creates a line of text describing an IRC event with given parameters.
@@ -112,7 +112,7 @@ def format_activity_text(event, **kwargs):
 
     fmt = event_formatters.get(event)
     return fmt(kwargs) if fmt else None
-    
+
 
 def record_user_activity(user, channel, text):
     ''' Records activity represented by given text. '''
