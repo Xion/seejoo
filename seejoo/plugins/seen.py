@@ -21,8 +21,13 @@ def seen_plugin(bot, event, **kwargs):
     '''
     if event in ('init', 'tick'):
         return
+
     if event == 'command' and str(kwargs['cmd']) == 'seen':
-        return handle_seen_command(kwargs['args'].strip())
+        user_arg = kwargs['args'].strip()
+        if user_arg == irc.get_nick(kwargs['user']):
+            return "You might wanna look in the mirror..."
+        return handle_seen_command(user_arg)
+
     track_activity(event, **kwargs)
 
 seen_plugin.commands = {'seen': "Reports last time when user was seen"}
@@ -71,12 +76,12 @@ def track_activity(event, **kwargs):
 
     # retrieve user(s) for this activity
     if event == 'kick':
-        users = ['kicker', 'kickee']
+        users = ('kicker', 'kickee')
     elif event == 'nick':
-        users = ['old', 'new']
+        users = ('old', 'new')
     else:
         user = kwargs.get('user')
-        users = [user] if user else []
+        users = (user,) if user else ()
 
     channel = kwargs.get('channel')
     for user in users:
