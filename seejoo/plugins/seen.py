@@ -6,9 +6,9 @@ Created on 2012-01-12
 
 @author: Xion
 '''
-import os
-import json
 from datetime import datetime
+import json
+import os
 from time import time
 
 from seejoo.ext import register_plugin, get_storage_dir
@@ -53,15 +53,15 @@ def handle_seen_command(user):
     with open(user_file, 'r') as f:
         activity = json.load(f)
 
-    channel, last = max(activity.iteritems(),
-                        key=lambda (_, a): a['timestamp'])
+    channel, last_action = max(activity.iteritems(),
+                               key=lambda (_, a): a['timestamp'])
 
-    activity_time = datetime.fromtimestamp(last['timestamp'])
+    activity_time = datetime.fromtimestamp(last_action['timestamp'])
     formatted_time = activity_time.strftime("%Y-%m-%d %H:%M:%S")
     channel_part = " on %s" % channel if channel != GLOBAL_CHANNEL else ""
 
     return "%s was last seen%s at %s: %s" % (
-        user, channel_part, formatted_time, last['text'])
+        user, channel_part, formatted_time, last_action['text'])
 
 
 # Tracking user activity
