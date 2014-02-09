@@ -26,6 +26,8 @@ def seen_plugin(bot, event, **kwargs):
         user_arg = kwargs['args'].strip()
         if user_arg == irc.get_nick(kwargs['user']):
             return "You might wanna look in the mirror..."
+        if user_arg == bot.nickname:
+            return "Looking for me?"
         return handle_seen_command(user_arg)
 
     track_activity(event, **kwargs)
