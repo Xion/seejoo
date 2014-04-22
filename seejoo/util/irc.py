@@ -30,7 +30,8 @@ def say(bot, recipient, messages, log=True):
     # Trim and post messages
     messages = [msg[:MESSAGE_MAX_LEN] for msg in messages]
     for msg in messages:
-        msg = unicode(msg).encode('utf-8', 'ignore')
+        if isinstance(msg, unicode):
+            msg = msg.encode('utf-8', 'ignore')
         bot.msg(target, msg, LINE_MAX_LEN)
         if log:
             logging.debug("[SEND] <%s/%s> %s", "__me__", recipient, msg)
@@ -45,9 +46,9 @@ def _get_host_part(part, user_host):
     '''
     Retrieves the part of user's host specified by the first parameter.
     '''
-    if not user_host:   return None
+    if not user_host:
+        return None
 
-    # Parse the host
     m = USER_RE.match(user_host)
     return m.groupdict().get(part) if m else None
 

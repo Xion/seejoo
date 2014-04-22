@@ -5,6 +5,8 @@ Created on 12-12-2010
 
 Memo plugin module.
 """
+from __future__ import unicode_literals
+
 from datetime import datetime
 import fnmatch
 import json
@@ -97,7 +99,8 @@ class Memos(Plugin):
         # Log delivery
         log_file = os.path.join(self.dir, "delivery.log")
         with open(log_file, 'a') as log:
-            log.writelines(m + "\n" for m in msgs)
+            log.writelines((m + os.linesep).encode('utf-8', 'ignore')
+                           for m in msgs)
 
     def command(self, bot, channel, user, cmd, args):
         """Called when user issues a command."""
