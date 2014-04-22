@@ -203,7 +203,7 @@ class Bot(IRCClient):
         resp = ext.notify(self, 'command',
                           channel=channel, user=user, cmd=cmd, args=args)
         if resp:
-            return resp
+            return self._reply(to=user, response=resp)
 
         # Plugins didn't care so find a command and invoke it if present
         cmd_object = ext.get_command(cmd)
@@ -251,7 +251,19 @@ class Bot(IRCClient):
 
                 resp = ["Did you mean one of: %s ?" % suggestions]
 
-        return resp
+        return self._reply(to=user, response=resp)
+
+    def _reply(self, to, response):
+        """Adorn the response to user's command with a prefix
+        containing the user's nick, in the typical IRC fashion.
+        """
+        if isinstance(response, basestring):
+            response = [response]
+        if not response:
+            return response
+
+        response[0] = u": ".join((irc.get_nick(to), response[0]))
+        return response
 
     def action(self, user, channel, message):
         ''' Method called when user performs and action (/me) in channel. '''
