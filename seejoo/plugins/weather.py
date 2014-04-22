@@ -51,10 +51,10 @@ class OpenWeather(Plugin):
         wind_chill = self._calculate_wind_chill(temperature, wind_speed)
 
         msg = ("{city}, {country}: "
-               "{temperature}^C -- {description}").format(**locals())
+               "{temperature:.1f}^C -- {description}").format(**locals())
         if wind_chill is not None:
             msg = ("{city}, {country}: "
-                   "{temperature}^C (felt as {wind_chill}^C) -- "
+                   "{temperature:.1f}^C (felt as {wind_chill:.0f}^C) -- "
                    "{description}").format(**locals())
         return msg
 
