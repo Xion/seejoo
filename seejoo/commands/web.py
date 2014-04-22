@@ -132,7 +132,7 @@ def googlefight(queries):
 # Wikipedia commands
 
 def get_wikipage_api_url(title, lang='en', format='json'):
-    ''' 
+    '''
     Returns an URL to Wikipedia API call that returns content of given page.
     @note: What is actually returned is the list of most recent revisions
     with a limit of 1.
@@ -296,33 +296,3 @@ def urban_dictionary(term):
             return "'%s': %s" % (term, definition)
 
     return "Could not find definition of '%s'." % term
-
-
-# Weather
-
-@command('f')
-def weather_forecast(place):
-    '''
-    Polls thefuckingweather.com (sic) site for current weather data at specific
-    place. Returns a text containing current temperature, whether it's raining etc.
-    '''
-    if not place or len(str(place).strip()) == 0:
-        return "No place supplied."
-
-    fw_site = download(
-        "http://www.thefuckingweather.com/?zipcode=%s&CELSIUS=yes" %
-        urllib2.quote(place))
-    if not fw_site:
-        return "Could not retrieve weather information."
-
-    soup = BeautifulSoup(fw_site)
-
-    try:
-        degrees = soup.find('span', {'class': 'temperature'}).text
-        remark = soup.find('p', {'class': 'remark'}).text
-        flavor = soup.find('p', {'class': 'flavor'}).text
-    except AttributeError:
-        return "Could not find weather information."
-
-    remark = re.sub(r"\sfucking", "", remark.lower())  # behave!
-    return "%s: %s^C -- %s [%s]" % (place, degrees, remark, flavor)

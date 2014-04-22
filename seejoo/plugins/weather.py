@@ -17,10 +17,13 @@ WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"
 
 @plugin
 class OpenWeather(Plugin):
-    commands = { 'weather': 'Fetches actual weather from openweathermap.org' }
+    commands = {
+        'f': ("Polls openweathermap.org for current weather "
+              "information at specific place.")
+    }
 
     def command(self, bot, channel, user, cmd, args):
-        if cmd != 'o':
+        if cmd != 'f':
             return
         if not args:
             return
