@@ -70,6 +70,7 @@ def handle_seen_command(user):
 
 GLOBAL_CHANNEL = '(global)'
 
+
 def track_activity(event, **kwargs):
     ''' Tracks activity of some user, recording it for further retrieving
     with .seen command.

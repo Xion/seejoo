@@ -41,16 +41,18 @@ class Config(object):
 
     def load_from_file(self, filename):
         ''' Loads configuration from given file.
-        @param filename: Config file. It must be in parseable format, e.g. JSON.
+        :param filename: Config file. It must be in parseable format, e.g. JSON.
+        :raise Exception: If loading the config failed
         '''
         if not os.path.isfile(filename):
-            logging.error("Config file '%s' does not exist or is not a file")
-            return
+            logging.error(
+                "Config file '%s' does not exist or is not a file", filename)
+            raise IOError("file not found")
 
         parser = self.deduce_parser(filename)
         if not parser:
             logging.error("Unknown format of config file")
-            return
+            raise IOError("unknown file format")
 
         with open(filename) as cfg_file:
             cfg = parser.load(cfg_file)
@@ -68,7 +70,7 @@ class Config(object):
         _, extension = os.path.splitext(filename)
         if len(extension) <= 1:
             logging.error(
-                "Filename '%'s has no extension to deduce parser from",
+                "Filename '%s' has no extension to deduce parser from",
                 filename)
             return
 

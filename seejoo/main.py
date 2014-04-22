@@ -6,12 +6,13 @@ Created on 05-12-2010
 
 Startup script for the bot.
 '''
-from seejoo import bot
-from seejoo.config import config
 from optparse import OptionGroup, OptionParser # Not argparse since we target Python 2.6 as well
 import os
 import logging
 import sys
+
+from seejoo import bot
+from seejoo.config import config
 
 
 def main(argv=None):
@@ -19,9 +20,9 @@ def main(argv=None):
     @param argv: List of command line arguments. By default, sys.argv
                 (i.e. actual command line of the process) will be used.
     '''
-    setup_logging()    
+    setup_logging()
     create_data_directory()
-    
+
     config_file = get_config_file()
     try:
         config.load_from_file(config_file)
@@ -36,7 +37,7 @@ def main(argv=None):
 
 def create_data_directory():
     ''' Makes sure that the data directory (where plugins can store
-    some persistent information) has been created. 
+    some persistent information) has been created.
     @return: Path to data directory
     '''
     data_dir = os.path.expanduser("~/.seejoo/")
@@ -71,11 +72,11 @@ def get_config_file(argv=None):
 
     return args[0]
 
+
 def get_cmdline_parser(argv=None):
     ''' Creates a parser for command line arguments. '''
-    # nothing much remained...
     return OptionParser(usage="%prog config_file")
-    
+
 
 if __name__ == '__main__':
     main()
