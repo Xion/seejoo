@@ -3,55 +3,67 @@ Created on Jan 27, 2014
 
 @author: MrPoxipol
 '''
-from seejoo.util.common import download
-from seejoo.ext import plugin, Plugin
-from unidecode import unidecode
+from __future__ import unicode_literals
+
 import json
 import urllib2
 
+from seejoo.util.common import download
+from seejoo.ext import plugin, Plugin
+
+
 WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"
+
 
 @plugin
 class OpenWeather(Plugin):
     commands = { 'weather': 'Fetches actual weather from openweathermap.org' }
 
     def command(self, bot, channel, user, cmd, args):
-        if cmd != 'o':    return
-        
-        if args:
-            url = WEATHER_URL
-            url += "?q=" + urllib2.quote(args) + "&lang=eng"
+        if cmd != 'o':
+            return
+        if not args:
+            return
 
-            json_data = download(url)
-            if not json_data:
-                return "Weather not available at the moment."
+        url = WEATHER_URL + "?q=%s&lang=eng" % urllib2.quote(args)
+        json_data = download(url)
+        if not json_data:
+            return "Weather not available at the moment."
 
-            try:
-                data = json.loads(json_data)
-            except ValueError:
-                self.error(bot, channel)
-                return
+        try:
+            data = json.loads(json_data)
+        except ValueError:
+            self.error(bot, channel)
+            return
 
-            city = data.get("name")
-            if not city:
-                return "Could not find weather information."
+        city = data.get("name")
+        if not city:
+            return "Could not find weather information."
 
-            country = data.get("sys").get("country")
-            description = data.get("weather")[0].get("description")
-            temperature = data.get("main").get("temp")
-            temperature -= 273.15 #From Kelvins to Celcious
+        country = data.get("sys").get("country")
+        description = data.get("weather")[0].get("description")
+        temperature = self._kelvins_to_celsius(data.get("main").get("temp"))
 
-            wind = data.get("wind").get("speed")
-            wind *= 3.6 # m/s to km/h
-            #Wind chill (only calculate if temperature is lower than 10^C and the wind speed is higher than 1.8 m/s)
-            wchill = 0
-            if temperature < 10 and (wind/3.6) >= 1.8:
-                wchill = 13.12 + 0.6215*temperature - 11.37*pow(wind, 0.16) + 0.3965*temperature*pow(wind, 0.16)
+        wind_speed = self._mps_to_kmps(data.get("wind").get("speed"))
+        wind_chill = self._calculate_wind_chill(temperature, wind_speed)
 
-            msg = u"***%s, %s: %d^C - %s" % (city, country, temperature, description)
-            if wchill:
-                msg = u"***%s, %s: %d^C (%d^C) - %s" % (city, country, temperature, wchill, description)
+        msg = ("{city}, {country}: "
+               "{temperature}^C -- {description}").format(**locals())
+        if wind_chill is not None:
+            msg = ("{city}, {country}: "
+                   "{temperature}^C (felt as {wind_chill}^C) -- "
+                   "{description}").format(**locals())
+        return msg
 
-            msg = unidecode(msg)
-            #msg = msg.encode("utf-8")
-            return msg
+    def _kelvins_to_celsius(self, temperature):
+        return temperature - 273.15
+
+    def _mps_to_kmps(self, velocity):
+        return velocity * 3.6
+
+    def _calculate_wind_chill(self, temperature, wind_speed):
+        """Calculate wind chill. Can be None if temperature is high enough."""
+        if temperature < 10 and (wind_speed / 3.6) >= 1.8:
+            return (13.12 + 0.6215 * temperature
+                    - 11.37 * pow(wind_speed, 0.16)
+                    + 0.3965 * temperature * pow(wind_speed, 0.16))
