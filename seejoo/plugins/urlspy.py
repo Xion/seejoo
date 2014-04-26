@@ -1,10 +1,14 @@
-'''
+"""
 Contains the URLSpy plugin, which provides functionality
 related to URLs spoken by those present on IRC channel.
-'''
+"""
+import logging
 import re
 
+from bs4 import BeautifulSoup
+
 from seejoo.ext import plugin, Plugin
+from seejoo.util import irc
 from seejoo.util.common import download
 from seejoo.util.strings import normalize_whitespace
 
@@ -13,56 +17,63 @@ from seejoo.util.strings import normalize_whitespace
 URL_RE = re.compile(r"((https?:\/\/)|(www\.))(\w+\.)*\w+(\/.*)*",
                     re.IGNORECASE)
 
-TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*?)\<\/\s*title\s*\>',
-                      re.IGNORECASE | re.DOTALL)
+YOUTUBE_URL_RE = re.compile(
+    r'(https?://)?(www\.)?youtube\.(\w+)/watch\?v=([-\w]+)', re.IGNORECASE)
 
 
 @plugin
 class URLSpy(Plugin):
-    '''
-    URLSpy plugin, providing various URL-related commands.
-    '''
-    commands = {
-        't': 'Get a title of website with given or most recently said URL'
-    }
-
-    def __init__(self):
-        ''' Initialization. '''
-        self.urls = {}
-
+    """Plugin for listening on users pasting URLs and automatically resolving
+    where they point to.
+    """
     def message(self, bot, channel, user, message, type):
-        '''
-        Called when we hear a message being spoken.
-        '''
-        if not channel:
+        """Called when we hear a message being spoken."""
+        if not channel or channel == '*':
             return
 
-        m = URL_RE.search(message)  # check if it there is an URL there
-        if not m:
+        url_match = URL_RE.search(message)
+        if url_match:
+            result = self._resolve_url(url_match.group(0))
+            if result:
+                type_, title = result
+                irc.say(bot, channel, u"[%s] %s" % (type_, title))
+
+    def _resolve_url(self, url):
+        """Handle URL being spoken on a channel where the bot is."""
+        page_content = download(url)
+        if not page_content:
+            logging.debug("Could not download URL %s" % url)
             return
 
-        url = m.group(0)
-        self.urls[channel] = url
+        html = BeautifulSoup(page_content)
+        if YOUTUBE_URL_RE.match(url):
+            return self._handle_youtube_video(html)
+        else:
+            return self._handle_regular_page(html)
 
-    def command(self, bot, channel, user, cmd, args):
-        '''
-        Called when user issues a command.
-        '''
-        if not channel:
-            return
-        if cmd != 't':
-            return
+    def _handle_youtube_video(self, html):
+        """Special handling of Youtube URLs: shows video title
+        and watch counter value.
+        """
+        try:
+            title = sanitize(html.find('span', id='eow-title').text)
+            watch_count = sanitize(
+                html.find('span', class_='watch-view-count').text)
+        except AttributeError:
+            return "YouTube", "(Unknown video)"
+        else:
+            return "YouTube", "%s (watched %s times)" % (title, watch_count)
 
-        url = args or self.urls.get(channel)
-        if not url:
-            return "I don't recall anything that looks like an URL."
+    def _handle_regular_page(self, html):
+        """Handle regular page by displaying its <title>."""
+        try:
+            title = sanitize(html.find('title').text)
+        except AttributeError:
+            return "", "(Untitled)"
+        else:
+            return "", title
 
-        site = download(url)
-        if not site:
-            return "(Could not retrieve page)"
 
-        m = TITLE_RE.search(site)
-        if not m:
-            return "(Untitled)"
-        title = m.group('title')
-        return normalize_whitespace(title)
+def sanitize(text):
+    """Sanitize text extracted from HTML."""
+    return normalize_whitespace(text).strip()
