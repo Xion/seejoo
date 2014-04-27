@@ -6,9 +6,9 @@ Created on 05-12-2010
 
 Startup script for the bot.
 '''
+import logging
 from optparse import OptionGroup, OptionParser # Not argparse since we target Python 2.6 as well
 import os
-import logging
 import sys
 
 from seejoo import bot

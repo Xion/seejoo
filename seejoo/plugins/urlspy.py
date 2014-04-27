@@ -14,8 +14,11 @@ from seejoo.util.strings import normalize_whitespace
 
 
 # Not entirely perfect regex but hey, it works :)
-URL_RE = re.compile(r"((https?:\/\/)|(www\.))(\w+\.)*\w+(\/.*)*",
-                    re.IGNORECASE)
+URL_RE = re.compile(r"""
+    ((https?\:\/\/)|(www\.))    # URLs start with http://, https:// or www.
+    (\w+\.)*\w+                 # followed by domain/host part
+    (\/.*)*                     # and an optional path part
+    """, re.IGNORECASE | re.VERBOSE)
 
 YOUTUBE_URL_RE = re.compile(
     r'(https?://)?(www\.)?youtube\.(\w+)/watch\?v=([-\w]+)', re.IGNORECASE)
@@ -29,6 +32,8 @@ class URLSpy(Plugin):
     def message(self, bot, channel, user, message, type):
         """Called when we hear a message being spoken."""
         if not channel or channel == '*':
+            return
+        if irc.get_nick(user) == bot.nickname:
             return
 
         url_match = URL_RE.search(message)
