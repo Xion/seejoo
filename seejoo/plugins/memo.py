@@ -76,10 +76,10 @@ class Memos(Plugin):
         files = []
         for recp in self._list_recipients():
             if fnmatch.fnmatch(nick, recp):
-                file = self._get_filename(recp)
-                with open(file) as f:
+                filename = self._get_filename(recp)
+                with open(filename) as f:
                     messages.extend(json.load(f))
-                files.append(file)
+                files.append(filename)
 
         # Format and send them
         msgs = []
