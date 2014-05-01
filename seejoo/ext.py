@@ -193,6 +193,8 @@ def notify(bot, event, **kwargs):
                     return True
                 return command in plugin.commands
 
+            command = kwargs['cmd']
+
             # Get command results, remove Nones
             # and turn whole result to None if nothing remains
             res = [plugin(bot, event, **kwargs)
