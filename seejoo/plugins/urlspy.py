@@ -67,9 +67,6 @@ class URLSpy(Plugin):
         except AttributeError:
             return "YouTube", "(Unknown video)"
         else:
-            watch_count = int(re.match(r'[\d,.]+', watch_count).group()
-                              .replace(',', '')
-                              .replace('.', ''))
             return "YouTube", "%s (watched %s times)" % (title, watch_count)
 
     def _handle_regular_page(self, html):
