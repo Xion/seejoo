@@ -76,10 +76,9 @@ class URLSpy(Plugin):
         """Handle regular page by displaying its <title>."""
         try:
             title = sanitize(html.find('title').text)
-        except AttributeError:
-            return "", "(Untitled)"
-        else:
             return "", title
+        except AttributeError:
+            pass
 
 
 def sanitize(text):
