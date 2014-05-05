@@ -32,6 +32,10 @@ class URLSpy(Plugin):
         """Called when we hear a message being spoken."""
         if not channel or channel == '*':
             return
+        # if message comes from server
+        if '!' not in user:
+            return
+
         if irc.get_nick(user) == bot.nickname:
             return
 
