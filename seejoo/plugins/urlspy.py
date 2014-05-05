@@ -13,11 +13,10 @@ from seejoo.util.common import download
 from seejoo.util.strings import normalize_whitespace
 
 
-# Not entirely perfect regex but hey, it works :)
 URL_RE = re.compile(r"""
     ((https?\:\/\/)|(www\.))    # URLs start with http://, https:// or www.
     (\w+\.)*\w+                 # followed by domain/host part
-    (\/.*)*                     # and an optional path part
+    (\/[^\s]*)*                 # and an optional path part
     """, re.IGNORECASE | re.VERBOSE)
 
 YOUTUBE_URL_RE = re.compile(
