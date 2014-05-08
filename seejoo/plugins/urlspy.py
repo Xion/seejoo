@@ -65,8 +65,8 @@ class URLSpy(Plugin):
         """
         try:
             title = sanitize(html.find('span', id='eow-title').text)
-            watch_count = sanitize(
-                html.find('span', class_='watch-view-count').text)
+            watch_tag = sanitize(html.find('span', class_='watch-view-count').text)
+            watch_count = ' '.join(re.findall(r'(?=\d)[\d\s]+(?<=\d)', watch_tag))
         except AttributeError:
             return "YouTube", "(Unknown video)"
         else:
