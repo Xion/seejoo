@@ -12,6 +12,7 @@ from seejoo.util import irc
 from seejoo.util.common import download
 from seejoo.util.strings import normalize_whitespace
 
+TITLE_MAX_LEN = 250
 
 URL_RE = re.compile(r"""
     ((https?\:\/\/)|(www\.))    # URLs start with http://, https:// or www.
@@ -76,11 +77,24 @@ class URLSpy(Plugin):
         """Handle regular page by displaying its <title>."""
         try:
             title = sanitize(html.find('title').text)
+            # Title length limit
+            title = shorten(title)
             return "", title
         except AttributeError:
             pass
 
 
+def shorten(text):
+    if len(text) < TITLE_MAX_LEN:
+        return text
+
+    word_wrap = text[:TITLE_MAX_LEN].rfind(' ')
+    word_wrap = 250 if word_wrap == -1 else word_wrap
+
+    text = text[:word_wrap] + '..'
+    return text
+
+
 def sanitize(text):
-    """Sanitize text extracted from HTML."""
+    """Sanitize text extracted from HTML"""
     return normalize_whitespace(text).strip()
