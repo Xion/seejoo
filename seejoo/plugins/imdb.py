@@ -35,12 +35,11 @@ class Imdb(Plugin):
         title = ''
         year = ''
         try:
-            m = re.search(r"(\d+)", args)
-            year = m.group() # '2005'
+            m = re.search(r"\s+\((\d+)\)", args)
+            year = m.group(1) # '2005'
 
             # Remove year from args
-            title = args[:m.start()-1] + args[m.end()+1:] # +1 for parenthesis
-            title = title.strip()
+            title = args[:m.start()] + args[m.end():]
         except Exception:
             title = args
             year = ''
