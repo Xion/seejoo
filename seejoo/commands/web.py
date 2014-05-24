@@ -98,6 +98,8 @@ def google_search_count(query):
     Performs a search using Google search engine
     and returns only the estimated number of results.
     '''
+    if not query or len(str(query).strip()) == 0:
+        return "No queries provided."
     json_resp = _google_websearch(query)
     result_count = _get_google_websearch_result_count(json_resp)
     return "`%s`: about %s results" % (query, result_count)
@@ -109,7 +111,7 @@ def googlefight(queries):
     Performs a Googlefight, querying each term and displaying results.
     Queries shall be separated with semicolon.
     '''
-    if not queries:
+    if not queries or len(str(queries).strip()) == 0:
         return "No queries provided."
     queries = map(str.strip, queries.split(";"))
 
