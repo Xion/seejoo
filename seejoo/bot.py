@@ -48,6 +48,7 @@ class Bot(IRCClient):
 
     def __init__(self, *args, **kwargs):
         ''' Initializer. '''
+        self.config = config
         self.nickname = config.nickname
         self.channels = set()
 

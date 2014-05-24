@@ -1,0 +1,114 @@
+"""
+Plugin for translation of phrases using Google Translate.
+
+.. warning:: This is highly experimental and hackish,
+             and fragile, and might break horribly,
+             and come back to haunt you at night.
+"""
+from collections import namedtuple
+from itertools import dropwhile, takewhile
+import json
+from urllib import urlencode
+
+from seejoo.ext import plugin, Plugin
+from seejoo.util.common import download
+
+
+@plugin
+class Translate(Plugin):
+    """Translation plugin."""
+    commands = {
+        'tr': "Translate given phrase using Google Translate API."
+    }
+
+    def __init__(self):
+        self._default_source_lang = None  # autodetection
+        self._default_target_lang = 'en'
+        self._lang_prefix = None  # command prefix by default
+
+    def init(self, bot, config):
+        """Remembers configuration for the plugin."""
+        self._default_source_lang = config.get(
+            'default_source', self._default_source_lang)
+        self._default_target_lang = config.get(
+            'default_target', self._default_target_lang)
+        self._lang_prefix = config.get(
+            'language_prefix', self._lang_prefix or bot.config.cmd_prefix)
+
+    def command(self, bot, channel, user, cmd, args):
+        """Reacts to translation command."""
+        arg_parts = args.strip().split()
+        is_lang_flag = lambda part: part.startswith(self._lang_prefix)
+
+        # determine source and target languages from command argument parts
+        source_lang = self._default_source_lang
+        target_lang = self._default_target_lang
+        langs = list(takewhile(is_lang_flag, arg_parts))
+        if langs:
+            if len(langs) == 1:
+                target_lang = langs[0].lstrip(self._lang_prefix)
+            elif len(langs) == 2:
+                source_lang = langs[0].lstrip(self._lang_prefix)
+                target_lang = langs[1].lstrip(self._lang_prefix)
+            else:
+                return "Invalid language arguments"
+
+        text = " ".join(dropwhile(is_lang_flag, arg_parts))
+        translation = fetch_translation(text, target_lang, source_lang)
+        return "{translated_text} ({source_lang} -> {target_lang})".format(
+            **translation.__dict__)
+
+
+#: Represents a translation of a phrase.
+Translation = namedtuple('Translation', ['source_lang', 'original_text',
+                                         'target_lang', 'translated_text'])
+
+
+# Google Translate API calls
+
+API_ENDPOINT_URL = 'http://translate.google.com/translate_a/t'
+FIXED_API_PARAMS = {
+    'client': 't',
+    'multires': 1,
+    'otf': 1,
+    'ssel': 0,
+    'tsel': 0,
+    'uptl': 'en',
+    'sc': 1,
+}
+USER_AGENT = "Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11"
+
+
+def get_translate_url(text, target_lang, source_lang=None):
+    """Format URL for translating given test from source to target language."""
+    query_args =  FIXED_API_PARAMS.copy()
+    query_args.update({
+        'sl': source_lang or 'auto',
+        'tl': target_lang,
+        'text': text,
+    })
+    return API_ENDPOINT_URL + '?' + urlencode(query_args)
+
+
+def fetch_translation(text, target_lang, source_lang=None):
+    """Get the translation of given text and return as Translation tuple."""
+    url = get_translate_url(text, target_lang, source_lang)
+    response = download(url, user_agent=USER_AGENT)
+
+    # convert the protobuf wire format to something json module can swallow
+    while ',,' in response:
+        response = response.replace(',,', ',null,')
+    data = json.loads(response)[0]
+
+    # read the actual source language, which may have been autodetected
+    try:
+        source_lang = data[2]
+    except IndexError:
+        source_lang = source_lang or "?"
+
+    return Translation(
+        source_lang=source_lang,
+        original_text=data[0][1],
+        target_lang=str(target_lang).lower(),
+        translated_text=data[0][0],
+    )
