@@ -5,6 +5,8 @@ Plugin for translation of phrases using Google Translate.
              and fragile, and might break horribly,
              and come back to haunt you at night.
 """
+from __future__ import unicode_literals
+
 from collections import namedtuple
 from itertools import dropwhile, takewhile
 import json
@@ -37,13 +39,16 @@ class Translate(Plugin):
 
     def command(self, bot, channel, user, cmd, args):
         """Reacts to translation command."""
-        arg_parts = args.strip().split()
-        is_lang_flag = lambda part: part.startswith(self._lang_prefix)
+        args = args.strip()
+        if not args:
+            return "No text specified"
+
+        arg_parts = args.split()
 
         # determine source and target languages from command argument parts
         source_lang = self._default_source_lang
         target_lang = self._default_target_lang
-        langs = list(takewhile(is_lang_flag, arg_parts))
+        langs = list(takewhile(self._is_lang_flag, arg_parts))
         if langs:
             if len(langs) == 1:
                 target_lang = langs[0].lstrip(self._lang_prefix)
@@ -53,10 +58,14 @@ class Translate(Plugin):
             else:
                 return "Invalid language arguments"
 
-        text = " ".join(dropwhile(is_lang_flag, arg_parts))
+        text = " ".join(dropwhile(self._is_lang_flag, arg_parts))
         translation = fetch_translation(text, target_lang, source_lang)
         return "{translated_text} ({source_lang} -> {target_lang})".format(
             **translation.__dict__)
+
+    def _is_lang_flag(self, s):
+        """Whether given string specifies an input or output language."""
+        return isinstance(s, basestring) and s.startswith(self._lang_prefix)
 
 
 #: Represents a translation of a phrase.
