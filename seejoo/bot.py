@@ -216,7 +216,7 @@ class Bot(IRCClient):
                     resp = type(e).__name__ + ": " + str(e)
                 resp = [resp]  # Since we expect response to be iterable
             else:
-                return ["Invalid command '%s'; likely indicates faulty plugin" % cmd]
+                return ["Error while executing command '%s'" % cmd]
         else:
             # Check whether the command can be unambiguously resolved
             completions = ext._commands.search(cmd).keys()
@@ -243,14 +243,18 @@ class Bot(IRCClient):
                     more = len(suggestions) - MAX_SUGGESTIONS
                     suggestions = suggestions[:MAX_SUGGESTIONS]
 
-                # Format them
+                # Include normal command prefix
                 if config.cmd_prefix:
-                    suggestions = map(lambda s: config.cmd_prefix + s, suggestions)
-                suggestions = str.join(" ", suggestions)
-                if more:
-                    suggestions += " ... (%s more)" % more
+                    suggestions = [config.cmd_prefix + s for s in suggestions]
 
-                resp = ["Did you mean one of: %s ?" % suggestions]
+                # Format the suggestions nicely
+                if len(suggestions) == 1:
+                    resp = ["Did you mean %s ?" % suggestions[0]]
+                else:
+                    suggestions = str.join(" ", suggestions)
+                    if more:
+                        suggestions += " ... (%s more)" % more
+                    resp = ["Did you mean one of: %s ?" % suggestions]
 
         return self._reply(to=user, response=resp)
 
