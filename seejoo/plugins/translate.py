@@ -16,6 +16,10 @@ from seejoo.ext import plugin, Plugin
 from seejoo.util.common import download
 
 
+DEFAULT_TARGET_LANGUAGE = 'en-US'
+MAX_LANGUAGE_CODE_LEN = 7
+
+
 @plugin
 class Translate(Plugin):
     """Translation plugin."""
@@ -25,7 +29,7 @@ class Translate(Plugin):
 
     def __init__(self):
         self._default_source_lang = None  # autodetection
-        self._default_target_lang = 'en'
+        self._default_target_lang = DEFAULT_TARGET_LANGUAGE
         self._lang_prefix = None  # command prefix by default
 
     def init(self, bot, config):
@@ -65,7 +69,9 @@ class Translate(Plugin):
 
     def _is_lang_flag(self, s):
         """Whether given string specifies an input or output language."""
-        return isinstance(s, basestring) and s.startswith(self._lang_prefix)
+        return isinstance(s, basestring) and \
+            s.startswith(self._lang_prefix) and \
+            1 < len(s.lstrip(self._lang_prefix)) < MAX_LANGUAGE_CODE_LEN
 
 
 #: Represents a translation of a phrase.
