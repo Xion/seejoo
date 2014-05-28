@@ -12,6 +12,8 @@ from itertools import dropwhile, takewhile
 import json
 from urllib import urlencode
 
+from taipan.collections import dicts
+
 from seejoo.ext import plugin, Plugin
 from seejoo.util.common import download
 
@@ -34,12 +36,18 @@ class Translate(Plugin):
 
     def init(self, bot, config):
         """Remembers configuration for the plugin."""
-        self._default_source_lang = config.get(
-            'default_source', self._default_source_lang)
-        self._default_target_lang = config.get(
-            'default_target', self._default_target_lang)
-        self._lang_prefix = config.get(
-            'language_prefix', self._lang_prefix or bot.config.cmd_prefix)
+        self._default_source_lang = dicts.get(
+            config,
+            ('default_source', 'default_source_lang', 'default_source_language'),
+            self._default_source_lang)
+        self._default_target_lang = dicts.get(
+            config,
+            ('default_target', 'default_target_lang', 'default_target_language'),
+            self._default_target_lang)
+        self._lang_prefix = dicts.get(
+            config,
+            ('lang_prefix', 'language_prefix'),
+            self._lang_prefix or bot.config.cmd_prefix)
 
     def command(self, bot, channel, user, cmd, args):
         """Reacts to translation command."""
@@ -96,8 +104,7 @@ USER_AGENT = "Mozilla/5.0 (X11; U; Linux i686) Gecko/20071127 Firefox/2.0.0.11"
 
 def get_translate_url(text, target_lang, source_lang=None):
     """Format URL for translating given test from source to target language."""
-    query_args =  FIXED_API_PARAMS.copy()
-    query_args.update({
+    query_args = dicts.merge(FIXED_API_PARAMS, {
         'sl': source_lang or 'auto',
         'tl': target_lang,
         'text': text,

@@ -7,6 +7,8 @@ Contains utility functions that don't fint anywhere else.
 '''
 import urllib2
 
+from taipan.collections import dicts
+
 
 def download(url, **headers):
     """Downloads content of given URL.
@@ -19,8 +21,7 @@ def download(url, **headers):
         parts = header.split('_')
         return '-'.join(part.capitalize() for part in parts)
 
-    headers = dict((header_arg_to_name(arg), value)
-                   for arg, value in headers.items())
+    headers = dicts.mapkeys(header_arg_to_name, headers)
     headers.setdefault('User-Agent', "seejoo")
 
     try:
