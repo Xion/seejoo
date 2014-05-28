@@ -103,9 +103,7 @@ class Memos(Plugin):
                            for m in msgs)
 
     def command(self, bot, channel, user, cmd, args):
-        """Called when user issues a command."""
-        if cmd != 'msg':
-            return
+        """Called when user issues the .msg command."""
         nick = irc.get_nick(user)
 
         # Forbid sending messages to the bot itself

@@ -23,8 +23,6 @@ class OpenWeather(Plugin):
     }
 
     def command(self, bot, channel, user, cmd, args):
-        if cmd != 'f':
-            return
         if not args:
             return
 

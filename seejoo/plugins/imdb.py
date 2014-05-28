@@ -5,7 +5,6 @@ Created on 2014-05-22
 
 IMDB/Open Movie DB plugin
 '''
-
 from __future__ import unicode_literals
 
 import json
@@ -27,8 +26,6 @@ class Imdb(Plugin):
     }
 
     def command(self, bot, channel, user, cmd, args):
-        if cmd != 'im':
-            return
         if not args:
             return
 
@@ -67,5 +64,7 @@ class Imdb(Plugin):
         rating = data.get("imdbRating")
         type = data.get("Type")
 
-        message = "[{title} ({year}, {country}) {genre}/{type}] {rating}/10 - Starring: {actors}: {plot}".format(**locals())
+        message = ("[{title} ({year}, {country}) {genre}/{type}] "
+                   "{rating}/10 - Starring: {actors}: {plot}").format(
+                   **locals())
         return message

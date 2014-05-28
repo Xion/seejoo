@@ -12,6 +12,7 @@ from seejoo.util import irc
 from seejoo.util.common import download
 from seejoo.util.strings import normalize_whitespace
 
+
 TITLE_MAX_LEN = 250
 
 URL_RE = re.compile(r"""

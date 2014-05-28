@@ -22,7 +22,7 @@ def seen_plugin(bot, event, **kwargs):
     if event in ('init', 'tick'):
         return
 
-    if event == 'command' and str(kwargs['cmd']) == 'seen':
+    if event == 'command':  # .seen command
         user_arg = kwargs['args'].strip()
         if user_arg == irc.get_nick(kwargs['user']):
             return "You might wanna look in the mirror..."
