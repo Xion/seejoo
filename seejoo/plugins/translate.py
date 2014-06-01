@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 from collections import namedtuple
 from itertools import dropwhile, takewhile
 import json
+import logging
 from urllib import urlencode
 
 from taipan.collections import dicts
@@ -115,7 +116,9 @@ def get_translate_url(text, target_lang, source_lang=None):
 def fetch_translation(text, target_lang, source_lang=None):
     """Get the translation of given text and return as Translation tuple."""
     url = get_translate_url(text, target_lang, source_lang)
-    response = download(url, user_agent=USER_AGENT)
+
+    logging.debug("Fetching translation from URL: %s", url)
+    response = unicode(download(url, user_agent=USER_AGENT), 'utf-8')
 
     # convert the protobuf wire format to something json module can swallow
     while ',,' in response:
