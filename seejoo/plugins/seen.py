@@ -11,7 +11,7 @@ import json
 import os
 from time import time
 
-from seejoo.ext import register_plugin, get_storage_dir
+from seejoo.ext import register_plugin, get_storage_dir, MSG_ACTION
 from seejoo.util import irc
 
 
@@ -75,30 +75,44 @@ def track_activity(event, **kwargs):
     ''' Tracks activity of some user, recording it for further retrieving
     with .seen command.
     '''
-    text = format_activity_text(event, **kwargs)
-
     # retrieve user(s) for this activity
-    if event == 'kick':
-        users = ('kicker', 'kickee')
-    elif event == 'nick':
-        users = ('old', 'new')
-    else:
-        user = kwargs.get('user')
-        users = (user,) if user else ()
+    events_to_user_refs = {
+        'kick': ('kicker', 'kickee'),
+        'nick': ('old', 'new'),
+    }
+    user_refs = events_to_user_refs.get(event, ('user',))
+    users = filter(None, map(kwargs.get, user_refs))
 
-    channel = kwargs.get('channel')
-    for user in users:
-        record_user_activity(user, channel, text)
+    if users:
+        # replace full user IDs with just their nicks
+        for ref in user_refs:
+            kwargs[ref] = irc.get_nick(kwargs[ref])
+
+        text = format_activity_text(event, **kwargs)
+        channel = kwargs.get('channel')
+
+        for user in users:
+            record_user_activity(user, channel, text)
 
 
 def format_activity_text(event, **kwargs):
     ''' Creates a line of text describing an IRC event with given parameters.
+
     It will be recorded as user's activity and eventually displayed
     in response to .seen command.
     '''
-    # special stuff for the most complicated 'mode' event
-    mode_has_args = lambda args: args and all(args)
-    format_mode_args = lambda args: " " + " ".join(args) if mode_has_args(args) else ""
+    def format_message_event(d):
+        fmt = "* %s %s" if d.get('type') == MSG_ACTION else "<%s> %s"
+        return fmt % (d['user'], d['message'])
+
+    def format_mode_event(d):
+        mode_args = d['args']
+        formatted_args = (" " + " ".join(mode_args)
+                          if mode_args and all(mode_args)
+                          else "")
+        sign = "+" if d['set'] else "-"
+        return "* %s sets mode %s%s%s" % (d['user'], sign,
+                                          d['modes'], formatted_args),
 
     event_formatters = {
         'join': lambda d: "* %s joins %s." % (
@@ -107,13 +121,10 @@ def format_activity_text(event, **kwargs):
             d['user'], d['channel']),
         'kick': lambda d: "* %s has been kicked from %s by %s." % (
             d['kickee'], d['channel'], d['kicker']),
-        'message': lambda d: "<%s> %s" % (
-            d['user'], d['message']),
+        'message': format_message_event,
         'nick': lambda d: "* %s changes nick to %s." % (
             d['old'], d['new']),
-        'mode': lambda d: "* %s sets mode %s%s%s" % (
-            d['user'], "+" if d['set'] else "-",
-            d['modes'], format_mode_args(d['args'])),
+        'mode': format_mode_event,
         'topic': lambda d: "* %s sets topic of %s to '%s'." % (
             d['user'], d['channel'], d['topic']),
         'quit': lambda d: "* %s quits IRC (%s)." % (

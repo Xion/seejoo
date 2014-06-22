@@ -27,6 +27,11 @@ from seejoo.util.strings import normalize_whitespace
 class IRCClient(_IRCClient):
     """Enhanced version of Twisted IRC client."""
 
+    def message(self, user, channel, message):
+        """Called when received a private or channel message."""
+        pass
+    privmsg = message  # Rename a confusing event handler
+
     def invited(self, inviter, channel):
         """Called when I've been invited to a channel."""
         pass
@@ -98,8 +103,8 @@ class Bot(IRCClient):
     def _init_plugins(self):
         ''' Initializes plugins that have a configuration section in config.plugins. '''
         for plugin in ext._plugins:
-            plugin_config = config.plugins.get(plugin.__module__)
-            plugin(self, 'init', config=plugin_config)
+            conf = config.plugins.get(plugin.__module__)
+            plugin(self, 'init', config=conf)
 
     def _handle_command(self, cmd, args):
         ''' Handles a bot-level command. Returns its result. '''
@@ -151,7 +156,7 @@ class Bot(IRCClient):
                       servername, version, umodes, cmodes)
         ext.notify(self, 'connect', host=servername)
 
-    def privmsg(self, user, channel, message):
+    def message(self, user, channel, message):
         ''' Method called upon receiving a message on a channel or private message. '''
         if channel == "*":
             logging.debug("[SERVER] %s", message)
@@ -164,13 +169,13 @@ class Bot(IRCClient):
 
         if is_priv:
             is_command = True   # on priv, everything's a command
-            if config.cmd_prefix and message.startswith(config.cmd_prefix):
-                message = message[len(config.cmd_prefix):]  # remove prefix if present anyway
+            if config.cmd_prefix:
+                message = message.lstrip(config.cmd_prefix)  # remove prefix if present anyway
         else:
             if config.cmd_prefix:
                 is_command = message.startswith(config.cmd_prefix)
                 if is_command:
-                    message = message[len(config.cmd_prefix):]
+                    message = message.lstrip(config.cmd_prefix)
             else:
                 is_command = True   # if no prefix is defined, everything is a command
 
@@ -230,7 +235,7 @@ class Bot(IRCClient):
             suggestions = set()
             for i in range(1, len(cmd) + 1):
                 completions = ext._commands.search(cmd[:i]).keys()
-                suggestions = suggestions.union(set(completions))
+                suggestions.update(set(completions))
 
             if len(suggestions) == 0:
                 resp = ["Unrecognized command '%s'." % cmd]
@@ -275,10 +280,10 @@ class Bot(IRCClient):
         is_priv = channel == self.nickname
 
         # Notify plugins and log message
-        logging.debug("[ACTION] <%s/%s> %s", user,
+        logging.debug("[ACTION] * %s/%s %s", user,
                       channel if not is_priv else '__priv__', message)
         ext.notify(self, 'message',
-                   user=user, channel=(channel if not is_priv else None),
+                   user=user, channel=(None if is_priv else channel),
                    message=message, type=ext.MSG_ACTION)
 
     def noticed(self, user, channel, message):
