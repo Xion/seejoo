@@ -10,8 +10,6 @@ import re
 import urllib2
 from xml.etree import ElementTree
 
-from bs4 import BeautifulSoup
-
 from seejoo.ext import command
 from seejoo.util.common import download
 from seejoo.util.strings import strip_html

@@ -53,7 +53,7 @@ class Bot(IRCClient):
         self.channels = set()
 
         self._register_meta_commands()
-        import seejoo.commands
+        __import__('seejoo.commands')  # TODO(xion): turn these into plugins
 
         self._import_plugins()
         self._init_plugins()
