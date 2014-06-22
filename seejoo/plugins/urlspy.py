@@ -90,7 +90,7 @@ def shorten(text):
         return text
 
     word_wrap = text[:TITLE_MAX_LEN].rfind(' ')
-    word_wrap = 250 if word_wrap == -1 else word_wrap
+    word_wrap = TITLE_MAX_LEN if word_wrap == -1 else word_wrap
 
     text = text[:word_wrap] + '..'
     return text
