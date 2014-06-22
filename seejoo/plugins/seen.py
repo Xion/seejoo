@@ -103,7 +103,7 @@ def format_activity_text(event, **kwargs):
     event_formatters = {
         'join': lambda d: "* %s joins %s." % (
             d['user'], d['channel']),
-        'part': lambda d: "* %s leaves  %s." % (
+        'part': lambda d: "* %s leaves %s." % (
             d['user'], d['channel']),
         'kick': lambda d: "* %s has been kicked from %s by %s." % (
             d['kickee'], d['channel'], d['kicker']),
@@ -116,6 +116,8 @@ def format_activity_text(event, **kwargs):
             d['modes'], format_mode_args(d['args'])),
         'topic': lambda d: "* %s sets topic of %s to '%s'." % (
             d['user'], d['channel'], d['topic']),
+        'quit': lambda d: "* %s quits IRC (%s)." % (
+            d['user'], d['message']) ,
     }
 
     fmt = event_formatters.get(event)
