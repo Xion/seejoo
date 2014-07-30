@@ -1,68 +1,101 @@
-'''
+"""
 Contains the URLSpy plugin, which provides functionality
 related to URLs spoken by those present on IRC channel.
-'''
+"""
+import logging
 import re
 
+from bs4 import BeautifulSoup
+
 from seejoo.ext import plugin, Plugin
+from seejoo.util import irc
 from seejoo.util.common import download
 from seejoo.util.strings import normalize_whitespace
 
 
-# Not entirely perfect regex but hey, it works :)
-URL_RE = re.compile(r"((https?:\/\/)|(www\.))(\w+\.)*\w+(\/.*)*",
-                    re.IGNORECASE)
+TITLE_MAX_LEN = 250
 
-TITLE_RE = re.compile(r'\<\s*title\s*\>(?P<title>.*?)\<\/\s*title\s*\>',
-                      re.IGNORECASE | re.DOTALL)
+URL_RE = re.compile(r"""
+    ((https?\:\/\/)|(www\.))    # URLs start with http://, https:// or www.
+    (\w+\.)*\w+                 # followed by domain/host part
+    (\/[^\s\/]+)*\/?            # and an optional path part
+    """, re.IGNORECASE | re.VERBOSE)
+
+YOUTUBE_URL_RE = re.compile(
+    r'(https?://)?(www\.)?youtube\.(\w+)/watch\?v=([-\w]+)', re.IGNORECASE)
 
 
 @plugin
 class URLSpy(Plugin):
-    '''
-    URLSpy plugin, providing various URL-related commands.
-    '''
-    commands = {
-        't': 'Get a title of website with given or most recently said URL'
-    }
-
-    def __init__(self):
-        ''' Initialization. '''
-        self.urls = {}
-
+    """Plugin for listening on users pasting URLs and automatically resolving
+    where they point to.
+    """
     def message(self, bot, channel, user, message, type):
-        '''
-        Called when we hear a message being spoken.
-        '''
-        if not channel:
+        """Called when we hear a message being spoken."""
+        if not channel or channel == '*':
+            return
+        # if message comes from server
+        if '!' not in user:
             return
 
-        m = URL_RE.search(message)  # check if it there is an URL there
-        if not m:
+        if irc.get_nick(user) == bot.nickname:
             return
 
-        url = m.group(0)
-        self.urls[channel] = url
+        url_match = URL_RE.search(message)
+        if url_match:
+            result = self._resolve_url(url_match.group(0))
+            if result:
+                type_, title = result
+                irc.say(bot, channel, u"[%s] %s" % (type_, title))
 
-    def command(self, bot, channel, user, cmd, args):
-        '''
-        Called when user issues a command.
-        '''
-        if not channel:
+    def _resolve_url(self, url):
+        """Handle URL being spoken on a channel where the bot is."""
+        page_content = download(url)
+        if not page_content:
+            logging.debug("Could not download URL %s" % url)
             return
-        if cmd != 't':
-            return
 
-        url = args or self.urls.get(channel)
-        if not url:
-            return "I don't recall anything that looks like an URL."
+        html = BeautifulSoup(page_content)
+        if YOUTUBE_URL_RE.match(url):
+            return self._handle_youtube_video(html)
+        else:
+            return self._handle_regular_page(html)
 
-        site = download(url)
-        if not site:
-            return "(Could not retrieve page)"
+    def _handle_youtube_video(self, html):
+        """Special handling of Youtube URLs: shows video title
+        and watch counter value.
+        """
+        try:
+            title = sanitize(html.find('span', id='eow-title').text)
+            watch_tag = sanitize(html.find('span', class_='watch-view-count').text)
+            watch_count = ' '.join(re.findall(r'(?=\d)[\d\s]+(?<=\d)', watch_tag))
+        except AttributeError:
+            return "YouTube", "(Unknown video)"
+        else:
+            return "YouTube", "%s (watched %s times)" % (title, watch_count)
 
-        m = TITLE_RE.search(site)
-        if not m:
-            return "(Untitled)"
-        title = m.group('title')
-        return normalize_whitespace(title)
+    def _handle_regular_page(self, html):
+        """Handle regular page by displaying its <title>."""
+        try:
+            title = sanitize(html.find('title').text)
+            # Title length limit
+            title = shorten(title)
+            return "", title
+        except AttributeError:
+            pass
+
+
+def shorten(text):
+    if len(text) < TITLE_MAX_LEN:
+        return text
+
+    word_wrap = text[:TITLE_MAX_LEN].rfind(' ')
+    word_wrap = TITLE_MAX_LEN if word_wrap == -1 else word_wrap
+
+    text = text[:word_wrap] + '..'
+    return text
+
+
+def sanitize(text):
+    """Sanitize text extracted from HTML"""
+    return normalize_whitespace(text).strip()

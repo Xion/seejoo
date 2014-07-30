@@ -10,8 +10,6 @@ import re
 import urllib2
 from xml.etree import ElementTree
 
-from bs4 import BeautifulSoup
-
 from seejoo.ext import command
 from seejoo.util.common import download
 from seejoo.util.strings import strip_html
@@ -98,6 +96,8 @@ def google_search_count(query):
     Performs a search using Google search engine
     and returns only the estimated number of results.
     '''
+    if not query or len(str(query).strip()) == 0:
+        return "No queries provided."
     json_resp = _google_websearch(query)
     result_count = _get_google_websearch_result_count(json_resp)
     return "`%s`: about %s results" % (query, result_count)
@@ -109,7 +109,7 @@ def googlefight(queries):
     Performs a Googlefight, querying each term and displaying results.
     Queries shall be separated with semicolon.
     '''
-    if not queries:
+    if not queries or len(str(queries).strip()) == 0:
         return "No queries provided."
     queries = map(str.strip, queries.split(";"))
 
@@ -132,7 +132,7 @@ def googlefight(queries):
 # Wikipedia commands
 
 def get_wikipage_api_url(title, lang='en', format='json'):
-    ''' 
+    '''
     Returns an URL to Wikipedia API call that returns content of given page.
     @note: What is actually returned is the list of most recent revisions
     with a limit of 1.
@@ -296,33 +296,3 @@ def urban_dictionary(term):
             return "'%s': %s" % (term, definition)
 
     return "Could not find definition of '%s'." % term
-
-
-# Weather
-
-@command('f')
-def weather_forecast(place):
-    '''
-    Polls thefuckingweather.com (sic) site for current weather data at specific
-    place. Returns a text containing current temperature, whether it's raining etc.
-    '''
-    if not place or len(str(place).strip()) == 0:
-        return "No place supplied."
-
-    fw_site = download(
-        "http://www.thefuckingweather.com/?zipcode=%s&CELSIUS=yes" %
-        urllib2.quote(place))
-    if not fw_site:
-        return "Could not retrieve weather information."
-
-    soup = BeautifulSoup(fw_site)
-
-    try:
-        degrees = soup.find('span', {'class': 'temperature'}).text
-        remark = soup.find('p', {'class': 'remark'}).text
-        flavor = soup.find('p', {'class': 'flavor'}).text
-    except AttributeError:
-        return "Could not find weather information."
-
-    remark = re.sub(r"\sfucking", "", remark.lower())  # behave!
-    return "%s: %s^C -- %s [%s]" % (place, degrees, remark, flavor)

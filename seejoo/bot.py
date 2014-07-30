@@ -13,13 +13,33 @@ import socket
 
 from twisted.internet import reactor, task
 from twisted.internet.protocol import ReconnectingClientFactory
-from twisted.words.protocols.irc import IRCClient
+from twisted.words.protocols.irc import IRCClient as _IRCClient
 
 import seejoo
 from seejoo import ext
 from seejoo.config import config
 from seejoo.util import irc
 from seejoo.util.strings import normalize_whitespace
+
+
+# TODO(xion): extract this class to a new module ``seejoo.ext.twisted``,
+# after renaming existing ``ext`` module to something more appropriate
+class IRCClient(_IRCClient):
+    """Enhanced version of Twisted IRC client."""
+
+    def message(self, user, channel, message):
+        """Called when received a private or channel message."""
+        pass
+    privmsg = message  # Rename a confusing event handler
+
+    def invited(self, inviter, channel):
+        """Called when I've been invited to a channel."""
+        pass
+
+    def irc_INVITE(self, prefix, params):
+        inviter = prefix.split('!')[0]
+        channel = params[1]
+        self.invited(inviter, channel)
 
 
 COMMAND_RE = re.compile(r"(?P<cmd>\w+)(\s+(?P<args>.+))?")
@@ -33,11 +53,12 @@ class Bot(IRCClient):
 
     def __init__(self, *args, **kwargs):
         ''' Initializer. '''
+        self.config = config
         self.nickname = config.nickname
         self.channels = set()
 
         self._register_meta_commands()
-        import seejoo.commands
+        __import__('seejoo.commands')  # TODO(xion): turn these into plugins
 
         self._import_plugins()
         self._init_plugins()
@@ -82,8 +103,8 @@ class Bot(IRCClient):
     def _init_plugins(self):
         ''' Initializes plugins that have a configuration section in config.plugins. '''
         for plugin in ext._plugins:
-            plugin_config = config.plugins.get(plugin.__module__)
-            plugin(self, 'init', config=plugin_config)
+            conf = config.plugins.get(plugin.__module__)
+            plugin(self, 'init', config=conf)
 
     def _handle_command(self, cmd, args):
         ''' Handles a bot-level command. Returns its result. '''
@@ -122,13 +143,20 @@ class Bot(IRCClient):
         for chan in config.channels:
             self.join(chan)
 
+    def invited(self, inviter, channel):
+        """Method called when the bot has been invited to a channel."""
+        logging.debug("[INVITE] Invite from %s to channel %s",
+                      inviter, channel)
+        if config.join_on_invite:
+            self.join(channel)
+
     def myInfo(self, servername, version, umodes, cmodes):
         ''' Method called with information about the server. '''
         logging.debug("[SERVER] %s running %s; usermodes=%s, channelmodes=%s",
                       servername, version, umodes, cmodes)
         ext.notify(self, 'connect', host=servername)
 
-    def privmsg(self, user, channel, message):
+    def message(self, user, channel, message):
         ''' Method called upon receiving a message on a channel or private message. '''
         if channel == "*":
             logging.debug("[SERVER] %s", message)
@@ -141,13 +169,13 @@ class Bot(IRCClient):
 
         if is_priv:
             is_command = True   # on priv, everything's a command
-            if config.cmd_prefix and message.startswith(config.cmd_prefix):
-                message = message[len(config.cmd_prefix):]  # remove prefix if present anyway
+            if config.cmd_prefix:
+                message = message.lstrip(config.cmd_prefix)  # remove prefix if present anyway
         else:
             if config.cmd_prefix:
                 is_command = message.startswith(config.cmd_prefix)
                 if is_command:
-                    message = message[len(config.cmd_prefix):]
+                    message = message.lstrip(config.cmd_prefix)
             else:
                 is_command = True   # if no prefix is defined, everything is a command
 
@@ -181,7 +209,7 @@ class Bot(IRCClient):
         resp = ext.notify(self, 'command',
                           channel=channel, user=user, cmd=cmd, args=args)
         if resp:
-            return resp
+            return self._reply(to=user, response=resp)
 
         # Plugins didn't care so find a command and invoke it if present
         cmd_object = ext.get_command(cmd)
@@ -193,7 +221,7 @@ class Bot(IRCClient):
                     resp = type(e).__name__ + ": " + str(e)
                 resp = [resp]  # Since we expect response to be iterable
             else:
-                return ["Invalid command '%s'; likely indicates faulty plugin" % cmd]
+                return ["Error while executing command '%s'" % cmd]
         else:
             # Check whether the command can be unambiguously resolved
             completions = ext._commands.search(cmd).keys()
@@ -207,7 +235,7 @@ class Bot(IRCClient):
             suggestions = set()
             for i in range(1, len(cmd) + 1):
                 completions = ext._commands.search(cmd[:i]).keys()
-                suggestions = suggestions.union(set(completions))
+                suggestions.update(set(completions))
 
             if len(suggestions) == 0:
                 resp = ["Unrecognized command '%s'." % cmd]
@@ -220,26 +248,42 @@ class Bot(IRCClient):
                     more = len(suggestions) - MAX_SUGGESTIONS
                     suggestions = suggestions[:MAX_SUGGESTIONS]
 
-                # Format them
+                # Include normal command prefix
                 if config.cmd_prefix:
-                    suggestions = map(lambda s: config.cmd_prefix + s, suggestions)
-                suggestions = str.join(" ", suggestions)
-                if more:
-                    suggestions += " ... (%s more)" % more
+                    suggestions = [config.cmd_prefix + s for s in suggestions]
 
-                resp = ["Did you mean one of: %s ?" % suggestions]
+                # Format the suggestions nicely
+                if len(suggestions) == 1:
+                    resp = ["Did you mean %s ?" % suggestions[0]]
+                else:
+                    suggestions = str.join(" ", suggestions)
+                    if more:
+                        suggestions += " ... (%s more)" % more
+                    resp = ["Did you mean one of: %s ?" % suggestions]
 
-        return resp
+        return self._reply(to=user, response=resp)
+
+    def _reply(self, to, response):
+        """Adorn the response to user's command with a prefix
+        containing the user's nick, in the typical IRC fashion.
+        """
+        if isinstance(response, basestring):
+            response = [response]
+        if not response:
+            return response
+
+        response[0] = u": ".join((irc.get_nick(to), response[0]))
+        return response
 
     def action(self, user, channel, message):
         ''' Method called when user performs and action (/me) in channel. '''
         is_priv = channel == self.nickname
 
         # Notify plugins and log message
-        logging.debug("[ACTION] <%s/%s> %s", user,
+        logging.debug("[ACTION] * %s/%s %s", user,
                       channel if not is_priv else '__priv__', message)
         ext.notify(self, 'message',
-                   user=user, channel=(channel if not is_priv else None),
+                   user=user, channel=(None if is_priv else channel),
                    message=message, type=ext.MSG_ACTION)
 
     def noticed(self, user, channel, message):
@@ -293,6 +337,8 @@ class Bot(IRCClient):
                       self.nickname, channel, kicker, message)
         ext.notify(self, 'kick', channel=channel,
                    kicker=kicker, kickee=self.nickname, reason=message)
+        if config.rejoin_on_kick:
+            self.join(channel)
 
     def userKicked(self, kickee, channel, kicker, message):
         ''' Method called when other user is kicked from a channel. '''

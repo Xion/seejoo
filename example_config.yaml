@@ -9,16 +9,27 @@ server: irc.freenode.net
 # Port to connect on (6667 is the default)
 port: 6667
 
+
 # Channels the bot should join
 # (if channel name begins with single hash, it can be omitted)
 channels:
 - python
 - "##python-friendly"
 
+# Whether bot should automatically join channels
+# that it is invited to
+join_on_invite: true
+
+# Whether bot should automatically attempt to rejoin channel
+# that it has been kicked from
+rejoin_on_kick: false
+
+
 # A prefix which should be prepended to commands said in channel;
 # dot by default. You can changr it if seejoo should coexist
 # with other bots that use dot as their command prefix
 command_prefix: .
+
 
 # List of plugins used by the bot
 # (each entry should be a fully qualified module name)

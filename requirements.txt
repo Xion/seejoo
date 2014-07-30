@@ -2,6 +2,7 @@ twisted
 
 python-dateutil
 pytz
+git+https://github.com/Xion/taipan.git#egg=taipan
 
 lxml
 beautifulsoup4

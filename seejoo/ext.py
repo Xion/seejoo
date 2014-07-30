@@ -6,13 +6,14 @@ Created on 2010-12-05
 Extensions module. Contains installed commands and plugins, as well as functions
 to register them. Shall be used by external modules to add extensions to seejoo.
 '''
-from seejoo.config import config
-from seejoo.util.prefix_tree import PrefixTree
+import collections
 import functools
 import logging
 import os
 import types
-import collections
+
+from seejoo.config import config
+from seejoo.util.prefix_tree import PrefixTree
 
 
 BOT_COMMANDS = {'help': 'Displays help about particular command'}
@@ -41,6 +42,7 @@ def _get_command_doc(cmd_name):
         doc = str(cmd_obj)
 
     # Perform substitition of #cmd#
+    # TODO(xion): use str.format here
     doc = doc.replace("#cmd#", config.cmd_prefix + cmd_name)
     return doc
 
@@ -185,19 +187,24 @@ def plugin(plugin):
 def notify(bot, event, **kwargs):
     ''' Notifies all registered plugins about an IRC event. '''
     try:
-        if event != 'command':
-            for p in _plugins:
-                p(bot, event, **kwargs)
-        else:
+        if event == 'command':
+            def supports_command(plugin, command):
+                if not hasattr(plugin, 'commands'):
+                    return True
+                return command in plugin.commands
+
+            command = kwargs['cmd']
+
             # Get command results, remove Nones
             # and turn whole result to None if nothing remains
-            res = [p(bot, event, **kwargs) for p in _plugins]
+            res = [plugin(bot, event, **kwargs)
+                   for plugin in _plugins
+                   if supports_command(plugin, command)]
             res = filter(lambda x: x is not None, res)
-            if len(res) == 0:
-                res = None
-
-            return res
-
+            return res or None
+        else:
+            for plugin in _plugins:
+                plugin(bot, event, **kwargs)
     except Exception, e:
         logging.exception("Error while notifying plugins: %s - %s",
                           type(e).__name__, e)
@@ -235,8 +242,8 @@ def get_storage_dir(plugin):
         return None
 
     # Make sure it exists
-    dir = "%s/%s/" % (data_dir, name)
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    plugin_dir = "%s/%s/" % (data_dir, name)
+    if not os.path.exists(plugin_dir):
+        os.makedirs(plugin_dir)
 
-    return dir
+    return plugin_dir
