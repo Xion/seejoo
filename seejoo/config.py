@@ -6,8 +6,8 @@ Created on 2010-12-05
 Configuration module. Contains code for reading the configuration
 from command line and/or a file.
 '''
-import logging
 import collections
+import logging
 import os
 
 
@@ -101,23 +101,23 @@ class Config(object):
 
     def load_plugins(self, cfg):
         ''' Processes the 'plugins' section of configuration file, if present.
-        @return: Dictionary mapping names of plugin modules onto their configuration dicts
+
+        :return: Dictionary mapping names of plugin modules
+                 onto their configuration dicts
                  (or None, if no plugin-specific config has been supplied)
         '''
-        # TODO: allow for plugins_section to be dictionary,
-        # mapping plugin module names to the config options
-
-        plugins_section = cfg.get('plugins', self.plugins)
-        if not plugins_section:
-            return {}
+        plugins_section = cfg.get('plugins', self.plugins) or {}
+        if isinstance(plugins_section, collections.Mapping):
+            return plugins_section
 
         plugins = {}
         for plugin in plugins_section:
             if isinstance(plugin, collections.Mapping):
                 plugin_module = plugin.get('module')
                 if not plugin_module:
-                    logging.warning("Invalid config entry in 'plugins' section: %s",
-                                    plugin)
+                    logging.warning(
+                        "Invalid config entry in 'plugins' section: %s",
+                        plugin)
                     continue
                 plugin_config = plugin.get('config')
             else:
