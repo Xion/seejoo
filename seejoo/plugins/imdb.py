@@ -54,7 +54,7 @@ class Imdb(Plugin):
 
         title = data.get("Title")
         if not title:
-            return "Could not find movie."
+            return "Could not find specified movie."
 
         year = data.get("Year")
         genre = data.get("Genre")
